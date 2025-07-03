@@ -1,4 +1,4 @@
-# COSC 4354 Group 5 Volunteer Web App
+# COSC 4353 Group 5 Volunteer Web App
 Collaborators:
 - Pierre J Ingram
 - Cordai L Shadie

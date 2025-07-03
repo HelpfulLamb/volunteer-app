@@ -64,51 +64,28 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-2xl space-y-6">
       <h2 className="text-2xl font-bold">{mode === 'edit' ? 'Edit Event' : 'Create Event'}</h2>
       <div>
-        <label className="block font-medium mb-1">Event Name*</label>
-        <input
-          type="text"
-          name="eventName"
-          maxLength={100}
-          value={formData.eventName}
-          onChange={handleChange}
-          required
-          className="w-full border border-gray-300 px-3 py-2 rounded-md"
-          placeholder="e.g., Community Cleanup" />
-          {errors.eventName && <p className='text-red-600 text-sm'>{errors.eventName}</p>}
+        <label className="font-medium">Event Name*</label>
+        <input type="text" name="eventName" maxLength={100} value={formData.eventName} onChange={handleChange} required placeholder="e.g., Community Cleanup"
+          className="w-full border border-gray-300 px-3 py-2 rounded-lg" />
+        {errors.eventName && <p className='text-red-600 text-sm'>{errors.eventName}</p>}
       </div>
-
       <div>
-        <label className="block font-medium mb-1">Description*</label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-          className="w-full border border-gray-300 px-3 py-2 rounded-md"
-          placeholder="Describe the event details" />
+        <label className="font-medium">Description*</label>
+        <textarea name="description" value={formData.description} onChange={handleChange} required placeholder="Describe the event details"
+          className="w-full border border-gray-300 px-3 py-2 rounded-lg" />
           {errors.description && <p className='text-red-600 text-sm'>{errors.description}</p>}
       </div>
-
       <div>
-        <label className="block font-medium mb-1">Location*</label>
-        <textarea
-          name="location"
-          value={formData.location}
-          onChange={handleChange}
-          required
-          className="w-full border border-gray-300 px-3 py-2 rounded-md"
-          placeholder="Event address or general location" />
+        <label className="font-medium">Location*</label>
+        <textarea name="location" value={formData.location} onChange={handleChange} required placeholder="Event address or general location"
+          className="w-full border border-gray-300 px-3 py-2 rounded-lg" />
           {errors.location && <p className='text-red-600 text-sm'>{errors.location}</p>}
       </div>
-
       <div>
-        <label className="block font-medium mb-2">Required Skills*</label>
+        <label className="font-medium">Required Skills*</label>
         <div className="flex flex-wrap gap-2">
           {skillsOptions.map((skill) => (
-            <button
-              type="button"
-              key={skill}
-              onClick={() => handleSkillToggle(skill)}
+            <button type="button" key={skill} onClick={() => handleSkillToggle(skill)}
               className={`px-3 py-1 rounded-full border ${
                 formData.requiredSkills.includes(skill)
                   ? 'bg-blue-600 text-white'
@@ -119,40 +96,22 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
           ))}
         </div>
       </div>
-
       <div>
-        <label className="block font-medium mb-1">Urgency*</label>
-        <select
-          name="urgency"
-          value={formData.urgency}
-          onChange={handleChange}
-          required
-          className="w-full border border-gray-300 px-3 py-2 rounded-md" >
+        <label className="font-medium">Urgency*</label>
+        <select name="urgency" value={formData.urgency} onChange={handleChange} required className="w-full border border-gray-300 px-3 py-2 rounded-lg" >
           <option value="">Select urgency</option>
           {urgencyLevels.map((level) => (
-            <option key={level} value={level}>
-              {level}
-            </option>
+            <option key={level} value={level}>{level}</option>
           ))}
         </select>
       </div>
-
       <div>
-        <label className="block font-medium mb-1">Event Date*</label>
-        <input
-          type="date"
-          name="eventDate"
-          value={formData.eventDate}
-          onChange={handleChange}
-          required
-          className="w-full border border-gray-300 px-3 py-2 rounded-md" />
+        <label className="font-medium">Event Date*</label>
+        <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} required className="w-full border border-gray-300 px-3 py-2 rounded-lg" />
           {errors.eventDate && <p className='text-red-600 text-sm'>{errors.eventDate}</p>}
       </div>
-
       <div className="flex gap-4 pt-4">
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" >
-          {mode === 'edit' ? 'Update Event' : 'Create Event'}
-        </button>
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" >{mode === 'edit' ? 'Update Event' : 'Create Event'}</button>
       </div>
     </form>
   );
