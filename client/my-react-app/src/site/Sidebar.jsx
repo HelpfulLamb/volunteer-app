@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaPlusCircle, FaUsers, FaBell, FaUser, FaSignOutAlt, FaClipboardList, FaChartBar, FaAngleDoubleLeft, FaBars } from "react-icons/fa";
+import { FaHome, FaPlusCircle, FaUsers, FaBell, FaUser, FaSignOutAlt, FaClipboardList, FaChartBar, FaAngleDoubleLeft, FaBars, FaHistory } from "react-icons/fa";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -15,6 +15,7 @@ export default function Sidebar() {
     { label: 'Reports', path: '/report', icon: <FaChartBar /> },
     { label: 'Notifications', path: '/notifications', icon: <FaBell /> },
     { label: 'Profile', path: '/profile', icon: <FaUser /> },
+    { label: 'History', path: '/volunteer-history', icon: <FaHistory /> },
     { label: 'Logout', path: '/logout', icon: <FaSignOutAlt /> },
   ];
 

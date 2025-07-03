@@ -1,0 +1,18 @@
+.notification-page {
+    padding: 2rem;
+}
+
+.notification-page ul {
+    list-style: none;
+    padding: 0;
+}
+
+.notification-page li {
+    border-bottom: 1px solid #ea0c0c;
+    padding: 1rem 0;
+}
+
+.notification-page li.unread {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
