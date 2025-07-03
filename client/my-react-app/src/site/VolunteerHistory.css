@@ -1,0 +1,19 @@
+.volunteer-history {
+    padding: 2rem;
+    overflow-x: auto;
+}
+
+.volunteer-history table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.volunteer-history th, .volunteer-history td {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.volunteer-history th {
+    background-color: #f4f4f4;
+}
