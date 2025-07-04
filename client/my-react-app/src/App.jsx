@@ -15,31 +15,42 @@ import UserProfile from './users/Profile.jsx';
 import PersonalInfoSection from './users/PersonalInfo.jsx';
 import VolunteerHistory from './site/VolunteerHistory.jsx';
 import NotificationsPage from './site/NotificationsPage.jsx';
+import Login from './context/Login.jsx';
+import Registration from './context/Registration.jsx';
 
 function App() {
   const location = useLocation();
+  const authRoutes = ['/login', '/registration'];
+  const isAuthRoute = authRoutes.includes(location.pathname);
 
   return (
     <AuthProvider>
       <ToastProvider>
-        <div className='flex'>
-          <Sidebar />
-          <div className='ml-64 p-6 w-full'>
-            <Routes>
-              <Route path='/' element={<Home />} />
-              <Route path='/home' element={<Home />} />
-              <Route path='/create-event' element={<EventManagementForm />} />
-              <Route path='/matching' element={<VolunteerMatchingPage />} />
-              <Route path='/events-list' element={<EventsList />}/>
-              <Route path='/edit-event/:id' element={<EditEvent />} />
-              <Route path='/profile' element={<UserProfile />} />
-              <Route path='/edit-profile' element={<PersonalInfoSection />} />
-              <Route path='/volunteer-history' element={<VolunteerHistory />} />
-              <Route path='/notifications' element={<NotificationsPage />} />
-              <Route path='*' element={<div>404 - Page Not Found</div>} />
-            </Routes>
+        {isAuthRoute ? (
+          <Routes>
+            <Route path='/' element={<Login />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/registration' element={<Registration />} />
+          </Routes>
+        ) : (
+          <div className='flex'>
+            <Sidebar />
+            <div className='ml-64 p-6 w-full'>
+              <Routes>
+                <Route path='/home' element={<Home />} />
+                <Route path='/create-event' element={<EventManagementForm />} />
+                <Route path='/matching' element={<VolunteerMatchingPage />} />
+                <Route path='/events-list' element={<EventsList />}/>
+                <Route path='/edit-event/:id' element={<EditEvent />} />
+                <Route path='/profile' element={<UserProfile />} />
+                <Route path='/edit-profile' element={<PersonalInfoSection />} />
+                <Route path='/volunteer-history' element={<VolunteerHistory />} />
+                <Route path='/notifications' element={<NotificationsPage />} />
+                <Route path='*' element={<div>404 - Page Not Found</div>} />
+              </Routes>
+            </div>
           </div>
-        </div>
+        )}
       </ToastProvider>
     </AuthProvider>
   )
