@@ -20,7 +20,7 @@ import Registration from './context/Registration.jsx';
 
 function App() {
   const location = useLocation();
-  const authRoutes = ['/login', '/registration'];
+  const authRoutes = ['/', '/login', '/registration'];
   const isAuthRoute = authRoutes.includes(location.pathname);
 
   return (
