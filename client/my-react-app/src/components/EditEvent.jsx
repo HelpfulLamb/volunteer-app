@@ -1,39 +1,50 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import EventManagementForm from '../admin/EventForm';
-
-// Temporary mock event data, I will replace with real DB fetch later
-const mockEvents = [
-  {
-    id: 1,
-    eventName: 'Community Cleanup',
-    description: 'Cleaning up local parks',
-    location: 'City Park',
-    requiredSkills: ['Logistics', 'Communication'],
-    urgency: 'High',
-    eventDate: '2025-07-15',
-  },
-  {
-    id: 2,
-    eventName: 'Food Drive',
-    description: 'Distributing food to families',
-    location: 'Downtown Center',
-    requiredSkills: ['Driving', 'Cooking'],
-    urgency: 'Medium',
-    eventDate: '2025-07-22',
-  },
-];
+import { useState, useEffect } from 'react';
 
 export default function EditEvent() {
+  const [message, setMessage] = useState({error: '', success: ''});
+  const [eventToEdit, setEventToEdit] = useState(null);
+  const [error, setError] = useState(null);
   const { id } = useParams();
   const navigate = useNavigate();
-  const eventToEdit = mockEvents.find((e) => e.id === parseInt(id));
 
-  if (!eventToEdit) return <p className="p-4">Event not found.</p>;
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(`/api/events/${id}/find`);
+        if(!response.ok) {
+          throw new Error(`HTTP Error! Status: ${response.status}. Failed to locate event.`);
+        }
+        const data = await response.json();
+        setEventToEdit(data);
+      } catch (error) {
+        setMessage({error: 'An error occurred while trying to fetch the event. Please try again.', success: ''});
+        setError(error.message);
+      }
+    };
+    fetchEvent();
+  }, [id]);
+  
+  if(error) return <p className="p-4 text-red-600">{error}</p>
+  if(!eventToEdit) return <p className="p-4">Loading event...</p>;
 
-  const handleUpdate = (updatedData) => {
-    console.log('Updated event:', updatedData);
-    // I will replace this with a PUT once the backend is complete
-    navigate('/events-list');
+  const handleUpdate = async (updatedData) => {
+    try {
+        const response = await fetch(`/api/events/update-event/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedData),
+        });
+        if(!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}. Failed to update event.`);
+        }
+        navigate('/events-list');
+    } catch (error) {
+        setMessage({error: 'An error occurred while trying to update the event. Please try again.', success: ''});
+    }
   };
 
   return (
