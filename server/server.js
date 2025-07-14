@@ -7,6 +7,7 @@ dotenv.config({path: './.env'});
 
 // import the routers
 const { eventRouter } = require('./routes/eventRoute.js');
+const { userRouter } = require('./routes/userRoute.js');
 const { matchRouter } = require('./routes/matchRoute.js');
 
 const PORT = process.env.PORT || 3000;
@@ -18,6 +19,7 @@ app.use(cors());
 
 // using the routers
 app.use('/api/events', eventRouter);
+app.use('/api/users', userRouter);
 app.use('/api/matching', matchRouter);
 
 app.get('/', (req, res) => {

@@ -1,94 +1,70 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FiSearch, FiUserCheck, FiCalendar, FiMapPin, FiClock, FiFilter, FiCheck, FiX } from 'react-icons/fi';
 
 const VolunteerMatchingPage = () => {
-  // I will replace this mock data with proper data once the DB and backend have been developed
-  const [volunteers, setVolunteers] = useState([
-    {
-      id: 1,
-      name: 'Alex Johnson',
-      skills: ['First Aid', 'Translation', 'Event Planning'],
-      availability: 'Weekends, Weekday evenings',
-      location: 'Downtown',
-      matchedEvents: [101, 103],
-      assigned: false
-    },
-    {
-      id: 2,
-      name: 'Maria Garcia',
-      skills: ['Cooking', 'Driving', 'Childcare'],
-      availability: 'Weekday mornings',
-      location: 'Northside',
-      matchedEvents: [102],
-      assigned: false
-    },
-    {
-      id: 3,
-      name: 'James Wilson',
-      skills: ['Construction', 'Heavy Lifting', 'First Aid'],
-      availability: 'Saturdays only',
-      location: 'Eastside',
-      matchedEvents: [101, 104],
-      assigned: true
-    },
-  ]);
-
-  const [events, setEvents] = useState([
-    {
-      id: 101,
-      title: 'Food Bank Assistance',
-      date: '2023-11-15',
-      location: 'Community Center',
-      requiredSkills: ['First Aid', 'Event Planning'],
-      urgency: 'High',
-      volunteersNeeded: 3
-    },
-    {
-      id: 102,
-      title: 'Senior Meal Delivery',
-      date: '2023-11-18',
-      location: 'Various Locations',
-      requiredSkills: ['Driving', 'Cooking'],
-      urgency: 'Medium',
-      volunteersNeeded: 5
-    },
-    {
-      id: 103,
-      title: 'Park Cleanup',
-      date: '2023-11-20',
-      location: 'Central Park',
-      requiredSkills: ['Translation', 'Event Planning'],
-      urgency: 'Low',
-      volunteersNeeded: 2
-    },
-    {
-      id: 104,
-      title: 'Shelter Setup',
-      date: '2023-11-22',
-      location: 'Westside Gym',
-      requiredSkills: ['Construction', 'Heavy Lifting'],
-      urgency: 'High',
-      volunteersNeeded: 4
-    },
-  ]);
-
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     skills: [],
     availability: '',
     location: ''
   });
+  const [volunteers, setVolunteers] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [message, setMessage] = useState({error: '', success: ''});
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDataAndMatch = async () => {
+        try {
+            // fetching all the volunteers
+            const volRes = await fetch('/api/users/volunteers');
+            if(!volRes.ok) {
+                throw new Error(`HTTP Error! Status: ${volRes.status}. Failed to fetch volunteers.`);
+            }
+            const volData = await volRes.json();
+            // fetching all the events
+            const eventRes = await fetch('/api/events');
+            if(!eventRes.ok) {
+                throw new Error(`HTTP Error! Status: ${eventRes.status}. Failed to fetch events.`);
+            }
+            const eventData = await eventRes.json();
+            setVolunteers(volData.volunteers);
+            setEvents(eventData.events);
+            // pass the data over to be matched
+            const matchRes = await fetch('/api/matching/suggestions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ volunteers: volData.volunteers, events: eventData.events }),
+            });
+            if(!matchRes.ok) {
+                throw new Error(`HTTP Error! Status: ${matchRes.status}. Failed to get matching suggestions.`);
+            }
+            const matchData = await matchRes.json();
+            console.log("Matched Volunteers:", matchData.volunteers);
+            setVolunteers(matchData.volunteers);
+            setEvents(matchData.events);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchDataAndMatch();
+  }, []);
 
   // Toggle volunteer assignment
   const toggleAssignment = (volunteerId, eventId) => {
     setVolunteers(volunteers.map(volunteer => {
       if (volunteer.id === volunteerId) {
-        const isAssigned = volunteer.matchedEvents.includes(eventId);
+        const isAssigned = volunteer.matchedEvents.some(match => match.id === eventId);
         return {
           ...volunteer,
           matchedEvents: isAssigned 
-            ? volunteer.matchedEvents.filter(id => id !== eventId)
-            : [...volunteer.matchedEvents, eventId]
+            ? volunteer.matchedEvents.filter(match => match.id !== eventId)
+            : [...volunteer.matchedEvents, { id:eventId }]
         };
       }
       return volunteer;
@@ -104,6 +80,9 @@ const VolunteerMatchingPage = () => {
     return matchesSearch && matchesSkills && matchesAvailability && matchesLocation;
   });
 
+  if(loading) return <p>Loading...</p>;
+  if(error) return <p>{error}</p>;
+
   return (
     <div className="min-h-screen">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Volunteer Matching Dashboard</h1>
@@ -115,7 +94,7 @@ const VolunteerMatchingPage = () => {
             <input type="text" placeholder="Search volunteers..." onChange={(e) => setSearchTerm(e.target.value)} value={searchTerm} className="pl-10 py-2 w-full border border-gray-300 rounded-lg" />
           </div>
           <div className="flex gap-2">
-            <select value={filters.skills} onChange={(e) => setFilters({...filters, skills: e.target.value ? [e.target.value] : []})} className="border border-gray-300 rounded-lg px-3">
+            <select value={filters.skills[0] || ""} onChange={(e) => setFilters({...filters, skills: e.target.value ? [e.target.value] : []})} className="border border-gray-300 rounded-lg px-3">
               <option value="">All Skills</option>
               <option value="First Aid">First Aid</option>
               <option value="Translation">Translation</option>
@@ -173,27 +152,27 @@ const VolunteerMatchingPage = () => {
             {events.map(event => (
               <div key={event.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-lg text-gray-800">{event.title}</h3>
+                  <h3 className="font-bold text-lg text-gray-800">{event.event_name}</h3>
                   <span className={`text-xs px-2 py-1 rounded-full ${
-                    event.urgency === 'High' ? 'bg-red-100 text-red-800' :
-                    event.urgency === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                    event.event_urgency === 'High' ? 'bg-red-100 text-red-800' :
+                    event.event_urgency === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
                     'bg-green-100 text-green-800'
                   }`}>
-                    {event.urgency} Priority
+                    {event.event_urgency} Priority
                   </span>
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center text-gray-600 text-sm mb-1">
-                    <FiMapPin className="mr-2" /> {event.location}
+                    <FiMapPin className="mr-2" /> {event.event_location}
                   </div>
                   <div className="flex items-center text-gray-600 text-sm mb-2">
-                    <FiCalendar className="mr-2" /> {event.date}
+                    <FiCalendar className="mr-2" /> {event.event_date}
                   </div>
                   <div className="text-sm mb-2">
                     <span className="font-medium">Volunteers Needed:</span> {event.volunteersNeeded}
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {event.requiredSkills.map(skill => (
+                    {event.event_skills.map(skill => (
                       <span key={skill} className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full">{skill}</span>
                     ))}
                   </div>
@@ -209,17 +188,22 @@ const VolunteerMatchingPage = () => {
           </div>
           <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
             {volunteers.flatMap(volunteer => 
-              volunteer.matchedEvents.map(eventId => {
-                const event = events.find(e => e.id === eventId);
-                return { volunteer, event };
+              volunteer.matchedEvents.map(match => {
+                const event = events.find(e => e.id === match.id);
+                return { volunteer, event, distanceInMeters: match.distanceInMeters, isOutsideRange: match.isOutsideRange };
               })
             ).filter(match => match.event).map((match, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-bold text-gray-800">{match.volunteer.name}</h3>
-                    <p className="text-sm text-gray-600">matched with</p>
-                    <h4 className="font-medium text-gray-800">{match.event.title}</h4>
+                    <p className="text-sm text-gray-600">matched with: <strong>{match.event.event_name}</strong></p>
+                    <p className='text-sm text-gray-600 mt-1'>
+                        Distance: {(match.distanceInMeters / 1609.34).toFixed(1)} miles
+                        {match.isOutsideRange && (
+                            <span className='text-red-500 text-xs ml-2'>(outside preferred range)</span>
+                        )}
+                    </p>
                   </div>
                   <button onClick={() => toggleAssignment(match.volunteer.id, match.event.id)} title={match.volunteer.assigned ? 'Unassign' : 'Assign'}
                     className={`p-2 rounded-full ${match.volunteer.assigned ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'} hover:bg-green-200 transition`}>
@@ -229,7 +213,7 @@ const VolunteerMatchingPage = () => {
                 <div className="mt-2 flex justify-between items-center">
                   <div className="flex flex-wrap gap-1">
                     {match.volunteer.skills.filter(skill => 
-                      match.event.requiredSkills.includes(skill)
+                      match.event.event_skills.includes(skill)
                     ).map(skill => (
                       <span key={skill} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{skill} ✓</span>
                     ))}
