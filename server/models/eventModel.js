@@ -4,7 +4,7 @@ const events = [
       id: 101,
       event_name: 'Food Bank Assistance',
       event_description: 'Help distribute food to those in need.',
-      event_location: 'Community Center',
+      event_location: '2020 Hermann Dr, Houston, TX',
       event_skills: ['First Aid', 'Event Planning'],
       event_urgency: 'High',
       event_date: '2023-11-15'
@@ -13,7 +13,7 @@ const events = [
       id: 102,
       event_name: 'Senior Meal Delivery',
       event_description: 'Help distribute food to the elderly in need.',
-      event_location: 'Various Houston Locations',
+      event_location: '6827 Cypresswood Dr, Spring, TX',
       event_skills: ['Driving', 'Cooking'],
       event_urgency: 'Medium',
       event_date: '2023-11-18'
@@ -22,7 +22,7 @@ const events = [
       id: 103,
       event_name: 'Park Cleanup',
       event_description: 'Help keep the city parks clean and beautiful.',
-      event_location: 'Central Park',
+      event_location: 'Central Park, New York, NY',
       event_skills: ['Translation', 'Event Planning'],
       event_urgency: 'Low',
       event_date: '2023-11-20'
@@ -31,7 +31,7 @@ const events = [
       id: 104,
       event_name: 'Shelter Setup',
       event_description: 'Help build homes for animals in need',
-      event_location: 'Westside Gym',
+      event_location: '20400 Sandstone Cavern Cir, Richmond, TX',
       event_skills: ['Construction', 'Heavy Lifting'],
       event_urgency: 'High',
       event_date: '2023-11-22'

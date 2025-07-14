@@ -36,7 +36,7 @@ describe('Event Routes', () => {
             "id": 102,
             "event_name": "Senior Meal Delivery",
             "event_description": "Help distribute food to the elderly in need.",
-            "event_location": "Various Houston Locations",
+            "event_location": "6827 Cypresswood Dr, Spring, TX",
             "event_skills": [
                 "Driving",
                 "Cooking"
