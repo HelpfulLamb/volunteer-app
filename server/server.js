@@ -9,6 +9,8 @@ dotenv.config({path: './.env'});
 const { eventRouter } = require('./routes/eventRoute.js');
 const { userRouter } = require('./routes/userRoute.js');
 const { matchRouter } = require('./routes/matchRoute.js');
+const { notificationRouter } = require('./routes/notificationRoute.js');
+const { volunteerHistoryRouter } = require('./routes/volunteerHistoryRoute.js');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -21,6 +23,8 @@ app.use(cors());
 app.use('/api/events', eventRouter);
 app.use('/api/users', userRouter);
 app.use('/api/matching', matchRouter);
+app.use('/api/notifications', notificationRouter);
+app.use('/api/volunteer-history', volunteerHistoryRouter);
 
 app.get('/', (req, res) => {
     res.send('Server Active')
