@@ -1,17 +1,21 @@
 import { useState } from 'react';
 
-export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
+export default function PersonalInfoSection({ user = { role: 'volunteer' }, initialData = {}, onSubmit, mode = 'create' }) {
   const [formData, setFormData] = useState({
-    fullName: '',
-    address1: '',
-    address2: '',
-    city: '',
-    state: '',
-    zip: '',
-    skills: [],
-    preferences: '',
-    availability: [],
+    fullName: initialData.fullName || '',
+    email: initialData.email || '',
+    phone: initialData.phone || '',
+    address1: initialData.address1 || '',
+    address2: initialData.address2 || '',
+    city: initialData.city || '',
+    state: initialData.state || '',
+    zip: initialData.zip || '',
+    skills: initialData.skills || [],
+    preferences: initialData.preferences || '',
+    availability: initialData.availability || [],
   });
+
+  const today = new Date();
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -23,9 +27,34 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
     handleChange('availability', updated);
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    if(!formData.fullName.trim()) newErrors.fullName = 'Name is required.';
+    if(!formData.email.trim()) newErrors.email = 'Email is required.';
+    if(!formData.phone.trim()) newErrors.phone = 'Phone is required.';
+    if(!formData.address1.trim()) newErrors.address1 = 'Street address is required.';
+    if(!formData.city.trim()) newErrors.city = 'City is required.';
+    if(!formData.state.trim()) newErrors.state = 'State is required.';
+    if(!formData.zip.trim()) newErrors.zip = 'Zip is required.';
+    if(formData.skills.length === 0) newErrors.skills = 'At least one skill is required.';
+    const selectedDate = new Date(formData.availability);
+    if(selectedDate < today.setHours(0,0,0,0)) {
+        newErrors.availability = 'Availability dates must be upcoming dates.';
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Saving profile:', formData);
+    if(!validateForm()) return;
+    if(mode === 'edit') {
+        onSubmit(formData);
+    } else {
+        try {
+            
+        } catch (error) {
+            
+        }
+    }
   };
 
   return (
@@ -38,6 +67,11 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
           <div>
             <label className="text-sm font-medium text-gray-700">Full Name</label>
             <input type="text" maxLength={50} required value={formData.fullName} onChange={e => handleChange('fullName', e.target.value)} 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Phone</label>
+            <input type="tel" maxLength={10} required value={formData.phone} onChange={e => handleChange('phone', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
           </div>
           <div>

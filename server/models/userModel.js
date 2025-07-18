@@ -2,9 +2,16 @@ const volunteers = [
     {
       id: 1,
       name: 'Alex Johnson',
+      email: 'AlexJohnson@gmail.com',
+      password: 'AlexTheJohnson',
+      phone: '2037370249',
       skills: ['First Aid', 'Translation', 'Event Planning'],
-      availability: 'Weekends, Weekday evenings',
-      location: '3509 Elgin St, Houston, TX',
+      preferences: 'Weekends, Weekday evenings',
+      address1: '3509 Elgin St',
+      address2: '',
+      city: 'Houston',
+      state: 'TX',
+      zip: '77004',
       assigned: false
     },
     {
