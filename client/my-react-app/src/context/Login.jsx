@@ -8,14 +8,8 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState({ error: '', success: '' });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // useEffect(() => {
-  //   const storedUser = JSON.parse(localStorage.getItem('user'));
-  //   if(storedUser && storedUser.role){
-  //     navigate(storedUser.role === 'admin' ? '/create-event' : '/profile');
-  //   }
-  // }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,7 +19,7 @@ const Login = () => {
       setMessage({ error: 'Email, password, and role are required.', success: '' });
       return;
     }
-
+    setLoading(true);
     try {
       const response = await fetch('/api/users/login', {
         method: 'POST',
@@ -39,7 +33,7 @@ const Login = () => {
 
       if (response.ok) {
         setMessage({ success: data.message, error: '' });
-        login(data.user); // Store user data in AuthContext
+        login(data.user, data.token); // Store user data and token in AuthContext
         if (data.user.role === 'admin') {
           navigate('/create-event');
         } else if (data.user.role === 'volunteer') {
@@ -52,7 +46,15 @@ const Login = () => {
       console.error('Login error:', error);
       setMessage({ error: 'An unexpected error occurred. Please try again.', success: '' });
     }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    if(localStorage.getItem('user')) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        navigate(user.role === 'admin' ? '/create-event' : '/profile');
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
@@ -74,7 +76,7 @@ const Login = () => {
                 <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
-              <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-xl font-semibold hover:bg-blue-700 transition">Login</button>
+              <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded-xl font-semibold hover:bg-blue-700 transition">{loading ? 'Logging in...' : 'Login'}</button>
             </form>
             <button onClick={() => setRole(null)} className="mt-4 text-sm text-gray-500 hover:text-gray-700">← Back</button>
           </>
