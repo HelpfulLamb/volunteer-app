@@ -3,15 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 
 const Registration = () => {
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState(''); // Added email field
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState('volunteer'); // Added role state, default to volunteer
   const [message, setMessage] = useState({ error: '', success: '' });
   const navigate = useNavigate();
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
+    setMessage({ error: '', success: '' }); // Clear previous messages
 
-    if (!username || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword || !role) {
       setMessage({ error: 'All fields are required.', success: '' });
       return;
     }
@@ -21,10 +24,27 @@ const Registration = () => {
       return;
     }
 
-    setTimeout(() => {
-      setMessage({ success: 'Registration successful! Redirecting to login...', error: '' });
-      setTimeout(() => navigate('/login'), 1500);
-    }, 500);
+    try {
+      const response = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password, confirmPassword, role }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ success: data.message, error: '' });
+        setTimeout(() => navigate('/login'), 1500);
+      } else {
+        setMessage({ error: data.message || 'Registration failed.', success: '' });
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setMessage({ error: 'An unexpected error occurred. Please try again.', success: '' });
+    }
   };
 
   return (
@@ -39,6 +59,17 @@ const Registration = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Username"
+              required
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <input
+              type="email" // Changed to type email
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
               required
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -64,6 +95,19 @@ const Registration = () => {
               required
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+          {/* Role Selection */}
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Register as:</label>
+            <select
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="volunteer">Volunteer</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
           <button
             type="submit"
