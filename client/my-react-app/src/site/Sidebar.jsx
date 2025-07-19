@@ -1,3 +1,4 @@
+import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaPlusCircle, FaUsers, FaBell, FaUser, FaSignOutAlt, FaClipboardList, FaChartBar, FaAngleDoubleLeft, FaBars, FaHistory } from "react-icons/fa";
@@ -6,6 +7,7 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState('/home');
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const navItems = [
     { label: 'Dashboard', path: '/home', icon: <FaHome /> },
@@ -16,10 +18,15 @@ export default function Sidebar() {
     { label: 'Notifications', path: '/notifications', icon: <FaBell /> },
     { label: 'Profile', path: '/profile', icon: <FaUser /> },
     { label: 'History', path: '/volunteer-history', icon: <FaHistory /> },
-    { label: 'Logout', path: '/logout', icon: <FaSignOutAlt /> },
+    { label: 'Logout', path: 'LOGOUT', icon: <FaSignOutAlt /> },
   ];
 
   const handleNavigation = (path) => {
+    if(path === 'LOGOUT') {
+        logout();
+        navigate('/');
+        return;
+    }
     setActiveItem(path);
     navigate(path);
   };
