@@ -1,9 +1,51 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+dotenv.config({path: '../.env'});
 const userModel = require('../models/userModel.js');
 
 exports.getAllVolunteers = (req, res) => {
     try {
         const volunteers = userModel.getAllVolunteers();
         res.status(200).json({volunteers});
+    } catch (error) {
+        //console.error(error.message);
+        res.status(500).json({message: "Internal Server Error"});
+    }
+};
+
+exports.getAllAdmins = (req, res) => {
+    try {
+        const admins = userModel.getAllAdmins();
+        res.status(200).json({admins});
+    } catch (error) {
+        //console.error(error.message);
+        res.status(500).json({message: "Internal Server Error"});
+    }
+};
+
+exports.findVolunteerById = (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+        const volFound = userModel.findVolById(id);
+        if(!volFound) {
+            return res.status(404).json({message: 'Volunteer not found.'});
+        }
+        res.status(200).json(volFound);
+    } catch (error) {
+        //console.error(error.message);
+        res.status(500).json({message: "Internal Server Error"});
+    }
+};
+
+exports.findAdminById = (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+        const adminFound = userModel.findAdminById(id);
+        if(!adminFound) {
+            return res.status(404).json({message: 'Admin not found.'});
+        }
+        res.status(200).json(adminFound);
     } catch (error) {
         //console.error(error.message);
         res.status(500).json({message: "Internal Server Error"});
@@ -18,33 +60,37 @@ exports.loginUser = (req, res) => {
     }
 
     try {
-        const user = userModel.findUserByEmail(email);
+        const user = userModel.findUserByEmail(email, role);
 
-        if (!user || user.password !== password || user.role !== role) {
+        if (!user || !(bcrypt.compare(password, user.password)) || user.role !== role) {
             return res.status(401).json({ message: 'Invalid credentials or role.' });
         }
 
-        // In a real application, you would generate a token here (e.g., JWT)
-        // For this mock, we'll return basic user info
+        const token = jwt.sign(
+            {id: user.id, role: user.role},
+            process.env.JWT_SECRET,
+            {expiresIn: '1h'}
+        );
+
         res.status(200).json({
             message: 'Login successful.',
+            token,
             user: {
                 id: user.id,
-                name: user.name,
                 email: user.email,
                 role: user.role
             }
         });
     } catch (error) {
-        console.error(error.message);
+        //console.error(error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
-exports.registerUser = (req, res) => {
-    const { username, email, password, confirmPassword, role } = req.body;
+exports.registerUser = async (req, res) => {
+    const { email, password, confirmPassword, role } = req.body;
 
-    if (!username || !email || !password || !confirmPassword || !role) {
+    if (!email || !password || !confirmPassword || !role) {
         return res.status(400).json({ message: 'All fields are required.' });
     }
 
@@ -58,19 +104,56 @@ exports.registerUser = (req, res) => {
             return res.status(409).json({ message: 'User with this email already exists.' });
         }
 
-        const newUser = userModel.createUser({ username, email, password, role });
+        const hashPassword = await bcrypt.hash(password, 10);
+        const newUser = userModel.createUser({ email, password: hashPassword, role });
+
+        const token = jwt.sign(
+            {id: newUser.id, role: newUser.role},
+            process.env.JWT_SECRET,
+            {expiresIn: '1h'}
+        );
 
         res.status(201).json({
             message: 'Registration successful.',
             user: {
                 id: newUser.id,
-                name: newUser.name,
                 email: newUser.email,
                 role: newUser.role
-            }
+            },
+            token
         });
     } catch (error) {
-        console.error(error.message);
+        //console.error(error.message);
         res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
+exports.updateProfile = (req, res) => {
+    const id = parseInt(req.params.id);
+    const role = req.user.role;
+    const updateData = req.body;
+    try {
+        const updatedProfile = userModel.updateProfile(id, updateData, role);
+        if(!updatedProfile) {
+            return res.status(404).json({message: 'User not found.'});
+        }
+        res.status(200).json({message: 'Profile updated successfully', profile: updatedProfile});
+    } catch (error) {
+        //console.error(error.message);
+        res.status(500).json({message: "Internal Server Error"});
+    }
+};
+
+exports.deleteUser = (req, res) => {
+    const id = parseInt(req.params.id);
+    try {
+        const deletedUser = userModel.deleteUser(id);
+        if(!deletedUser) {
+            return res.status(404).json({message: 'User not found.'});
+        }
+        res.status(200).json({message: 'User account deleted successfully.'});
+    } catch (error) {
+        //console.error(error.message);
+        res.status(500).json({message: "Internal Server Error"});
     }
 };

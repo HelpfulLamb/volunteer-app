@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
+export default function PersonalInfoSection() {
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     fullName: '',
+    email: '',
+    phone: '',
     address1: '',
     address2: '',
     city: '',
@@ -10,8 +15,12 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
     zip: '',
     skills: [],
     preferences: '',
-    availability: [],
+    availability: [''],
   });
+
+  const today = new Date();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -23,10 +32,81 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
     handleChange('availability', updated);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Saving profile:', formData);
+  const validateForm = () => {
+    const newErrors = {};
+    if(!formData.fullName.trim()) newErrors.fullName = 'Name is required.';
+    if(!formData.email.trim()) newErrors.email = 'Email is required.';
+    if(!formData.phone.trim()) newErrors.phone = 'Phone is required.';
+    if(!formData.address1.trim()) newErrors.address1 = 'Street address is required.';
+    if(!formData.city.trim()) newErrors.city = 'City is required.';
+    if(!formData.state.trim()) newErrors.state = 'State is required.';
+    if(!formData.zip.trim()) newErrors.zip = 'Zip is required.';
+    if(user.role === 'volunteer'){
+        if(formData.skills.length === 0) newErrors.skills = 'At least one skill is required.';
+        formData.availability.forEach(date => {
+            if(new Date(date) < today.setHours(0,0,0,0)) {
+                newErrors.availability = 'All availability dates must be upcoming.';
+            }
+        });
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length == 0;
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    //console.log('Save button clicked, form submitting...');
+    if(!validateForm()) {
+        //console.log('Validation failed:', errors);
+        return;
+    };
+    try {
+        const response = await fetch(`/api/users/update-profile/${user.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify(formData),
+        });
+        if(!response.ok) {
+            throw new Error(`HTTP Error! Status: ${response.status}. Failed to update event.`);
+        }
+        navigate('/profile');
+    } catch (error) {
+      setErrors(error.message);
+    }
+  };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(user.role === 'admin' ? `/api/users/admins/${user.id}/find` : `/api/users/volunteers/${user.id}/find`);
+        if(!response.ok) {
+          throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch profile.`);
+        }
+        const data = await response.json();
+        setFormData({
+          fullName: data.fullName || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          address1: data.address1 || '',
+          address2: data.address2 || '',
+          city: data.city || '',
+          state: data.state || '',
+          zip: data.zip || '',
+          skills: data.skills || [],
+          preferences: data.preferences || '',
+          availability: data.availability && data.availability.length > 0 ? data.availability : [''],
+        });
+      } catch (error) {
+        setErrors(error.message);
+      }
+    };
+    if(user?.id) fetchProfile();
+  }, [user]);
+
+  
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -39,11 +119,19 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
             <label className="text-sm font-medium text-gray-700">Full Name</label>
             <input type="text" maxLength={50} required value={formData.fullName} onChange={e => handleChange('fullName', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              {errors.fullName && <p className='text-red-600 text-sm'>{errors.fullName}</p>}
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-700">Phone</label>
+            <input type="tel" maxLength={10} required value={formData.phone} onChange={e => handleChange('phone', e.target.value)} 
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              {errors.phone && <p className='text-red-600 text-sm'>{errors.phone}</p>}
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700 ">Address Line 1</label>
             <input type="text" maxLength={100} required value={formData.address1} onChange={e => handleChange('address1', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              {errors.address1 && <p className='text-red-600 text-sm'>{errors.address1}</p>}
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Address Line 2 (Optional)</label>
@@ -54,6 +142,7 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
             <div>
               <label className="text-sm font-medium text-gray-700">City</label>
               <input type="text" maxLength={100} required value={formData.city} onChange={e => handleChange('city', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              {errors.city && <p className='text-red-600 text-sm'>{errors.city}</p>}
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">State</label>
@@ -64,16 +153,18 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
                 <option value="TX">Texas</option>
                 <option value="FL">Florida</option>
               </select>
+              {errors.state && <p className='text-red-600 text-sm'>{errors.state}</p>}
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Zip Code</label>
               <input type="text" placeholder="e.g. 12345" pattern="\d{5,9}" required value={formData.zip} onChange={e => handleChange('zip', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              {errors.zip && <p className='text-red-600 text-sm'>{errors.zip}</p>}
             </div>
           </div>
         </div>
       </section>
       {/* Volunteer Info Section */}
-      {user.role === 'volunteer' && (
+      {user?.role === 'volunteer' && (
         <section className="pt-6 border-t border-gray-200">
           <h2 className="text-xl font-semibold text-gray-700 mb-6 pb-2 border-b border-gray-200">Volunteer Information</h2>
           <div className="space-y-3">
@@ -92,6 +183,7 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
                 <option value="Teaching">Teaching</option>
               </select>
               <p className="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple options</p>
+              {errors.skills && <p className='text-red-600 text-sm'>{errors.skills}</p>}
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Preferences</label>
@@ -109,6 +201,7 @@ export default function PersonalInfoSection({ user = { role: 'volunteer' } }) {
                     )}
                   </div>
                 ))}
+                {errors.availability && <p className='text-red-600 text-sm'>{errors.availability}</p>}
               </div>
               <button type="button" onClick={() => handleChange('availability', [...formData.availability, ''])} className="mt-2 px-3 py-1 text-sm font-medium rounded-lg text-blue-700 bg-blue-100 hover:bg-blue-200">
                 + Add Availability Date

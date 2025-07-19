@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const Registration = () => {
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState(''); // Added email field
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('volunteer'); // Added role state, default to volunteer
   const [message, setMessage] = useState({ error: '', success: '' });
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setMessage({ error: '', success: '' }); // Clear previous messages
 
-    if (!username || !email || !password || !confirmPassword || !role) {
+    if (!email || !password || !confirmPassword || !role) {
       setMessage({ error: 'All fields are required.', success: '' });
       return;
     }
@@ -30,14 +31,15 @@ const Registration = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ username, email, password, confirmPassword, role }),
+        body: JSON.stringify({ email, password, confirmPassword, role }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        login(data.user, data.token);
         setMessage({ success: data.message, error: '' });
-        setTimeout(() => navigate('/login'), 1500);
+        setTimeout(() => navigate('/edit-profile'), 1500);
       } else {
         setMessage({ error: data.message || 'Registration failed.', success: '' });
       }
@@ -52,17 +54,6 @@ const Registration = () => {
       <div className="bg-white shadow-lg rounded-2xl w-full max-w-md p-8">
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Register New Account</h1>
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
-          <div>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Username"
-              required
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
           <div>
             <input
               type="email" // Changed to type email
