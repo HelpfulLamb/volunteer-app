@@ -19,26 +19,39 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if(!email || !password){
-      setMessage({ error: 'Email and password are required.', success: '' });
+    setMessage({ error: '', success: '' }); // Clear previous messages
+
+    if (!email || !password || !role) {
+      setMessage({ error: 'Email, password, and role are required.', success: '' });
       return;
     }
 
-    // I will replace this with proper user data once we get a backend and DB
-    const mockUser = {
-      name: role === 'admin' ? 'Admin User' : 'Volunteer User',
-      email,
-      role
-    };
-    setTimeout(() => {
-      setMessage({ success: 'Login Successful!', error: '' });
-      login(mockUser);
-      if(role === 'admin'){
-        navigate('/create-event');
-      } else if(role === 'volunteer'){
-        navigate('/profile');
+    try {
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, role }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ success: data.message, error: '' });
+        login(data.user); // Store user data in AuthContext
+        if (data.user.role === 'admin') {
+          navigate('/create-event');
+        } else if (data.user.role === 'volunteer') {
+          navigate('/profile');
+        }
+      } else {
+        setMessage({ error: data.message || 'Login failed.', success: '' });
       }
-    }, 500);
+    } catch (error) {
+      console.error('Login error:', error);
+      setMessage({ error: 'An unexpected error occurred. Please try again.', success: '' });
+    }
   };
 
   return (
@@ -54,7 +67,7 @@ const Login = () => {
           <>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
-                <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required 
+                <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required
                   className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
