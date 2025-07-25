@@ -1,10 +1,16 @@
 const notificationModel = require('../models/notificationModel');
 const NotificationService = require('../services/notificationService');
+const userModel = require('../models/userModel.js');
 
 // Get all notifications for a volunteer
 const getNotificationsByVolunteer = async (req, res) => {
     try {
         const { volunteerId } = req.params;
+        const id = parseInt(volunteerId);
+        const volunteer = userModel.findVolById(id);
+        if(!volunteer){
+          return res.status(404).json({message: 'User not found.'});
+        }
         const notifications = notificationModel.getNotificationsByVolunteerId(parseInt(volunteerId));
         
         res.status(200).json({
@@ -28,10 +34,7 @@ const getNotificationById = async (req, res) => {
         const notification = notificationModel.getNotificationById(id);
         
         if (!notification) {
-            return res.status(404).json({
-                success: false,
-                message: 'Notification not found'
-            });
+            return res.status(404).json({message: 'Notification not found'});
         }
         
         res.status(200).json({

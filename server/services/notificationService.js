@@ -37,7 +37,7 @@ class NotificationService {
             });
 
             // Send email notification
-            await this.sendEmail(volunteer.name, title, message);
+            await this.sendEmail(volunteer.email, title, message);
             
             return notification;
         } catch (error) {
@@ -69,7 +69,7 @@ class NotificationService {
             });
 
             // Send email notification
-            await this.sendEmail(volunteer.name, title, message);
+            await this.sendEmail(volunteer.email, title, message);
             
             return notification;
         } catch (error) {
@@ -101,7 +101,7 @@ class NotificationService {
             });
 
             // Send email notification
-            await this.sendEmail(volunteer.name, title, message);
+            await this.sendEmail(volunteer.email, title, message);
             
             return notification;
         } catch (error) {
@@ -111,11 +111,11 @@ class NotificationService {
     }
 
     // Send email using nodemailer
-    static async sendEmail(recipientName, subject, message) {
+    static async sendEmail(email, subject, message) {
         try {
             const mailOptions = {
                 from: process.env.EMAIL_USER || 'your-email@gmail.com',
-                to: `${recipientName.toLowerCase().replace(' ', '.')}@example.com`, // Mock email
+                to: email,
                 subject: `Volunteer App - ${subject}`,
                 html: `
                     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -160,7 +160,7 @@ class NotificationService {
                     notifications.push(notification);
 
                     // Send email notification
-                    emailPromises.push(this.sendEmail(volunteer.name, title, message));
+                    emailPromises.push(this.sendEmail(volunteer.email, title, message));
                 }
             }
 
