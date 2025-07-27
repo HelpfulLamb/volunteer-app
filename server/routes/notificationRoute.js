@@ -6,13 +6,13 @@ const notificationRouter = express();
 notificationRouter.get('/volunteer/:volunteerId', notificationController.getNotificationsByVolunteer);
 
 // Get a specific notification by ID
-notificationRouter.get('/:id', notificationController.getNotificationById);
+notificationRouter.get('/retrieve-notification/:id', notificationController.getNotificationById);
 
 // Mark notification as read
-notificationRouter.patch('/:id/read', notificationController.markNotificationAsRead);
+notificationRouter.patch('/mark-notification/:id/read', notificationController.markNotificationAsRead);
 
 // Delete a notification
-notificationRouter.delete('/:id', notificationController.deleteNotification);
+notificationRouter.delete('/delete-notification/:id', notificationController.deleteNotification);
 
 // Get unread notification count for a volunteer
 notificationRouter.get('/volunteer/:volunteerId/unread-count', notificationController.getUnreadNotificationCount);

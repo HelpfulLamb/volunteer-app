@@ -260,6 +260,7 @@ describe('User Routes', () => {
         const res = await request(app).get('/api/users/volunteers');
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
     test('should return status 500 when getAllAdmins throws an error', async () => {
         jest.spyOn(userModel, 'getAllAdmins').mockImplementation(() => {
@@ -268,6 +269,7 @@ describe('User Routes', () => {
         const res = await request(app).get('/api/users/admins');
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
     test('should return status 500 when findVolById throws an error', async () => {
         jest.spyOn(userModel, 'findVolById').mockImplementation(() => {
@@ -276,6 +278,7 @@ describe('User Routes', () => {
         const res = await request(app).get('/api/users/volunteers/2/find');
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
     test('should return status 500 when findAdminById throws an error', async () => {
         jest.spyOn(userModel, 'findAdminById').mockImplementation(() => {
@@ -284,6 +287,7 @@ describe('User Routes', () => {
         const res = await request(app).get('/api/users/admins/5/find');
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
     test('should return status 500 when createUser throws an error', async () => {
         jest.spyOn(userModel, 'createUser').mockImplementation(() => {
@@ -297,6 +301,7 @@ describe('User Routes', () => {
         });
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
     test('should return status 500 when updateProfile throws an error', async () => {
         jest.spyOn(userModel, 'updateProfile').mockImplementation(() => {
@@ -312,6 +317,7 @@ describe('User Routes', () => {
         });
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
     test('should return status 500 when deleteUser throws an error', async () => {
         jest.spyOn(userModel, 'deleteUser').mockImplementation(() => {
@@ -320,5 +326,6 @@ describe('User Routes', () => {
         const res = await request(app).delete('/api/users/delete-account/3');
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
 });

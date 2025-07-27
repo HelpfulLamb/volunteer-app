@@ -44,11 +44,19 @@ exports.createNotification = (notificationData) => {
 };
 
 exports.getNotificationsByVolunteerId = (volunteerId) => {
-    return notifications.filter(n => n.volunteerId === volunteerId);
+  const volNoti = notifications.filter(n => n.volunteerId === volunteerId);
+  if(!volNoti){
+    return null;
+  }
+  return volNoti;
 };
 
 exports.getNotificationById = (id) => {
-    return notifications.find(n => n.id === id);
+  const noti = notifications.find(n => n.id === id);
+  if(!noti){
+    return null;
+  }
+  return noti;
 };
 
 exports.markNotificationAsRead = (id) => {
@@ -70,7 +78,8 @@ exports.deleteNotification = (id) => {
 };
 
 exports.getUnreadNotificationCount = (volunteerId) => {
-    return notifications.filter(n => n.volunteerId === volunteerId && n.status === 'unread').length;
+  const count = notifications.filter(n => n.volunteerId === volunteerId && n.status === 'unread').length;
+  return count;
 };
 
 exports.getAllNotifications = () => {

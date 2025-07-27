@@ -8,11 +8,13 @@ const volunteerHistory = [
         volunteerId: 1,
         eventId: 101,
         eventName: 'Food Bank Assistance',
+        eventDescription: 'Help distribute food to those in need.',
         eventDate: '2023-11-15',
         eventLocation: '2020 Hermann Dr, Houston, TX',
         status: 'completed',
         hoursWorked: 4,
         skillsUsed: ['First Aid', 'Event Planning'],
+        urgency: 'High',
         feedback: 'Great teamwork and organization',
         rating: 5,
         createdAt: '2023-11-15T16:00:00Z',
@@ -23,11 +25,13 @@ const volunteerHistory = [
         volunteerId: 1,
         eventId: 103,
         eventName: 'Park Cleanup',
+        eventDescription: 'Help keep the city parks clean and beautiful.',
         eventDate: '2023-11-20',
         eventLocation: 'Central Park, New York, NY',
         status: 'completed',
         hoursWorked: 3,
         skillsUsed: ['Translation', 'Event Planning'],
+        urgency: 'Low',
         feedback: 'Excellent communication skills',
         rating: 4,
         createdAt: '2023-11-20T09:00:00Z',
@@ -87,11 +91,19 @@ exports.createHistoryEntry = (historyData) => {
 };
 
 exports.getHistoryByVolunteerId = (volunteerId) => {
-    return volunteerHistory.filter(h => h.volunteerId === volunteerId);
+    const volHist = volunteerHistory.filter(h => h.volunteerId === volunteerId);
+    if(!volHist){
+      return null;
+    }
+    return volHist;
 };
 
 exports.getHistoryById = (id) => {
-    return volunteerHistory.find(h => h.id === id);
+  const hist = volunteerHistory.find(h => h.id === id);
+  if(!hist){
+    return null;
+  }
+  return hist;
 };
 
 exports.updateHistoryEntry = (id, updateData) => {
@@ -116,10 +128,10 @@ exports.completeEvent = (id, completionData) => {
     }
     
     entry.status = 'completed';
-    entry.hoursWorked = completionData.hoursWorked || 0;
     entry.skillsUsed = completionData.skillsUsed || [];
     entry.feedback = completionData.feedback || null;
     entry.rating = completionData.rating || null;
+    entry.hoursWorked = completionData.hoursWorked ?? 0;
     entry.completedAt = new Date().toISOString();
     
     return entry;
@@ -195,7 +207,11 @@ exports.getTopVolunteers = (limit = 10) => {
 };
 
 exports.getEventHistory = (eventId) => {
-    return volunteerHistory.filter(h => h.eventId === eventId);
+  const eventHist = volunteerHistory.filter(h => h.eventId === eventId);
+  if(!eventHist){
+    return null;
+  }
+  return eventHist;
 };
 
 exports.deleteHistoryEntry = (id) => {

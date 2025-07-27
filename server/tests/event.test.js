@@ -36,7 +36,7 @@ describe('Event Routes', () => {
             "id": 102,
             "event_name": "Senior Meal Delivery",
             "event_description": "Help distribute food to the elderly in need.",
-            "event_location": "6827 Cypresswood Dr, Spring, TX",
+            "event_location": "6827 Cypresswood Dr, Spring, TX 77379",
             "event_skills": [
                 "Driving",
                 "Cooking"
@@ -126,6 +126,7 @@ describe('Event Routes', () => {
         const res = await request(app).get('/api/events/');
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
     test('should return status 500 when findEventById throws an error', async () => {
         jest.spyOn(eventModel, 'findEventById').mockImplementation(() => {
@@ -134,5 +135,6 @@ describe('Event Routes', () => {
         const res = await request(app).get('/api/events/102/find');
         expect(res.statusCode).toEqual(500);
         expect(res.body.message).toEqual('Internal Server Error');
+        jest.restoreAllMocks();
     });
 });

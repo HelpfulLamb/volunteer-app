@@ -1,4 +1,0 @@
-
-// exports.getMatchingSuggestions = (volunteers, events) => {
-
-// };

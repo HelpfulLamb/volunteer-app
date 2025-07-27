@@ -30,7 +30,7 @@ const volunteers = [
       city: 'Houston',
       state: 'TX',
       zip: '77206',
-      availability: [],
+      availability: ['2025-07-26'],
       assigned: false
     },
     {

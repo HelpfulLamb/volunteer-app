@@ -10,7 +10,10 @@ describe('Match Routes', () => {
                 name: 'Peter Parker',
                 skills: ['First Aid', 'Heavy Lifting', 'Communication', 'Patient', 'Pet Friendly'],
                 availability: 'Everyday',
-                location: '3509 Elgin St, Houston, TX',
+                address1: '3509 Elgin St',
+                city: 'Houston', 
+                state: 'TX',
+                zip: '77004',
                 assigned: false
             }],
             events: [{
