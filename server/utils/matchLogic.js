@@ -7,7 +7,10 @@ exports.getMatchingSuggestions = async (volunteers, events) => {
         for(const event of events) {
             const hasMatchingSkills = event.event_skills.some(skill => vol.skills.includes(skill));
             if(!hasMatchingSkills) continue;
-            const distance = await getDistance(vol.location, event.event_location);
+            // concatentate volunteer address
+            const volAddress = `${vol.address1}, ${vol.city}, ${vol.state} ${vol.zip}`;
+            console.log(volAddress);
+            const distance = await getDistance(volAddress, event.event_location);
             // console.log(`Matching: ${vol.name} -> ${event.event_name}`);
             // console.log(`From: ${vol.location}, To: ${event.event_location}`);
             // console.log(`Distance: ${distance} meters\n`);
@@ -17,7 +20,7 @@ exports.getMatchingSuggestions = async (volunteers, events) => {
                 isOutsideRange: distance > 80000  // further than 50 miles away
             });
         }
-        suggestions.push({ ...vol, matchedEvents});
+        suggestions.push({ ...vol, matchedEvents });
     }
     return suggestions;
 };

@@ -1,10 +1,16 @@
-const volunteerHistoryModel = require('../models/volunteerHistoryModel');
-const userModel = require('../models/userModel');
+const volunteerHistoryModel = require('../models/volunteerHistoryModel.js');
+const userModel = require('../models/userModel.js');
+const eventModel = require('../models/eventModel.js');
 
 // Get volunteer history by volunteer ID
 const getVolunteerHistory = async (req, res) => {
     try {
         const { volunteerId } = req.params;
+        const id = parseInt(volunteerId);
+        const volunteer = userModel.findVolById(id);
+        if(!volunteer){
+          return res.status(404).json({message: 'User not found'});
+        }
         const history = volunteerHistoryModel.getHistoryByVolunteerId(parseInt(volunteerId));
         
         res.status(200).json({
@@ -12,7 +18,7 @@ const getVolunteerHistory = async (req, res) => {
             data: history
         });
     } catch (error) {
-        console.error('Error getting volunteer history:', error);
+        //console.error('Error getting volunteer history:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get volunteer history',
@@ -39,7 +45,7 @@ const getHistoryEntryById = async (req, res) => {
             data: entry
         });
     } catch (error) {
-        console.error('Error getting history entry:', error);
+        //console.error('Error getting history entry:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get history entry',
@@ -75,7 +81,7 @@ const createHistoryEntry = async (req, res) => {
             message: 'History entry created successfully'
         });
     } catch (error) {
-        console.error('Error creating history entry:', error);
+        //console.error('Error creating history entry:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to create history entry',
@@ -105,7 +111,7 @@ const updateHistoryEntry = async (req, res) => {
             message: 'History entry updated successfully'
         });
     } catch (error) {
-        console.error('Error updating history entry:', error);
+        //console.error('Error updating history entry:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to update history entry',
@@ -147,7 +153,7 @@ const completeEvent = async (req, res) => {
             message: 'Event completed successfully'
         });
     } catch (error) {
-        console.error('Error completing event:', error);
+        //console.error('Error completing event:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to complete event',
@@ -160,25 +166,29 @@ const completeEvent = async (req, res) => {
 const getVolunteerStats = async (req, res) => {
     try {
         const { volunteerId } = req.params;
-        const stats = volunteerHistoryModel.getVolunteerStats(parseInt(volunteerId));
+        const id = parseInt(volunteerId);
         
         // Get volunteer details
-        const volunteer = userModel.findVolById(parseInt(volunteerId));
+        const volunteer = userModel.findVolById(id);
+        if(!volunteer){
+          return res.status(404).json({message: 'User not found'});
+        }
+        const stats = volunteerHistoryModel.getVolunteerStats(id);
         
         res.status(200).json({
             success: true,
             data: {
                 volunteer: volunteer ? {
                     id: volunteer.id,
-                    name: volunteer.name,
+                    name: volunteer.fullName,
                     skills: volunteer.skills,
-                    location: volunteer.location
+                    location: `${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zip}`
                 } : null,
                 stats
             }
         });
     } catch (error) {
-        console.error('Error getting volunteer stats:', error);
+        //console.error('Error getting volunteer stats:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get volunteer stats',
@@ -208,7 +218,7 @@ const getTopVolunteers = async (req, res) => {
             data: enrichedTopVolunteers
         });
     } catch (error) {
-        console.error('Error getting top volunteers:', error);
+        //console.error('Error getting top volunteers:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get top volunteers',
@@ -221,6 +231,10 @@ const getTopVolunteers = async (req, res) => {
 const getEventHistory = async (req, res) => {
     try {
         const { eventId } = req.params;
+        const event = eventModel.findEventById(parseInt(eventId));
+        if(!event){
+          return res.status(404).json({message: 'Event not found'});
+        }
         const eventHistory = volunteerHistoryModel.getEventHistory(parseInt(eventId));
         
         // Enrich with volunteer details
@@ -238,7 +252,7 @@ const getEventHistory = async (req, res) => {
             data: enrichedEventHistory
         });
     } catch (error) {
-        console.error('Error getting event history:', error);
+        //console.error('Error getting event history:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get event history',
@@ -265,7 +279,7 @@ const deleteHistoryEntry = async (req, res) => {
             message: 'History entry deleted successfully'
         });
     } catch (error) {
-        console.error('Error deleting history entry:', error);
+        //console.error('Error deleting history entry:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to delete history entry',
@@ -284,7 +298,7 @@ const getAllHistory = async (req, res) => {
             data: allHistory
         });
     } catch (error) {
-        console.error('Error getting all history:', error);
+        //console.error('Error getting all history:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get all history',

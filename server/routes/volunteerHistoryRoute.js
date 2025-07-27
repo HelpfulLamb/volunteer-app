@@ -12,16 +12,16 @@ volunteerHistoryRouter.get('/volunteer/:volunteerId/stats', volunteerHistoryCont
 volunteerHistoryRouter.get('/entry/:id', volunteerHistoryController.getHistoryEntryById);
 
 // Create a new history entry
-volunteerHistoryRouter.post('/entry', volunteerHistoryController.createHistoryEntry);
+volunteerHistoryRouter.post('/create-entry', volunteerHistoryController.createHistoryEntry);
 
 // Update a history entry
-volunteerHistoryRouter.put('/entry/:id', volunteerHistoryController.updateHistoryEntry);
+volunteerHistoryRouter.patch('/update-entry/:id', volunteerHistoryController.updateHistoryEntry);
 
 // Complete an event (mark as completed with details)
-volunteerHistoryRouter.patch('/entry/:id/complete', volunteerHistoryController.completeEvent);
+volunteerHistoryRouter.patch('/mark-entry/:id/complete', volunteerHistoryController.completeEvent);
 
 // Delete a history entry
-volunteerHistoryRouter.delete('/entry/:id', volunteerHistoryController.deleteHistoryEntry);
+volunteerHistoryRouter.delete('/delete-entry/:id', volunteerHistoryController.deleteHistoryEntry);
 
 // Get top volunteers
 volunteerHistoryRouter.get('/top-volunteers', volunteerHistoryController.getTopVolunteers);

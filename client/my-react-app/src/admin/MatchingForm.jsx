@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FiSearch, FiUserCheck, FiCalendar, FiMapPin, FiClock, FiFilter, FiCheck, FiX } from 'react-icons/fi';
+import { FiSearch, FiUserCheck, FiCalendar, FiMapPin, FiClock, FiCheck, FiX } from 'react-icons/fi';
 
 const VolunteerMatchingPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,7 +10,6 @@ const VolunteerMatchingPage = () => {
   });
   const [volunteers, setVolunteers] = useState([]);
   const [events, setEvents] = useState([]);
-  const [message, setMessage] = useState({error: '', success: ''});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -73,7 +72,7 @@ const VolunteerMatchingPage = () => {
 
   // Filter volunteers based on search and filters
   const filteredVolunteers = volunteers.filter(volunteer => {
-    const matchesSearch = volunteer.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = volunteer.fullName.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSkills = filters.skills.length === 0 || filters.skills.some(skill => volunteer.skills.includes(skill));
     const matchesAvailability = !filters.availability || volunteer.availability.includes(filters.availability);
     const matchesLocation = !filters.location || volunteer.location === filters.location;
@@ -81,7 +80,7 @@ const VolunteerMatchingPage = () => {
   });
 
   if(loading) return <p>Loading...</p>;
-  if(error) return <p>{error}</p>;
+  if(error) return <p>Error: {error}</p>;
 
   return (
     <div className="min-h-screen">
@@ -108,7 +107,6 @@ const VolunteerMatchingPage = () => {
               <option value="Weekday">Weekday</option>
               <option value="Evenings">Evenings</option>
             </select>
-            <button className="flex items-center gap-1 bg-blue-600 text-white px-3 rounded-lg"><FiFilter /> Filter</button>
           </div>
         </div>
       </div>
@@ -123,15 +121,15 @@ const VolunteerMatchingPage = () => {
             {filteredVolunteers.map(volunteer => (
               <div key={volunteer.id} className="border border-gray-300 rounded-lg p-4">
                 <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-lg text-gray-800">{volunteer.name}</h3>
+                  <h3 className="font-bold text-lg text-gray-800">{volunteer.fullName}</h3>
                   <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Available</span>
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center text-gray-600 text-sm mb-1">
-                    <FiMapPin className="mr-2" /> {volunteer.location}
+                    <FiMapPin className="mr-2" /> {`${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zip}`}
                   </div>
                   <div className="flex items-center text-gray-600 text-sm mb-2">
-                    <FiClock className="mr-2" /> {volunteer.availability}
+                    <FiClock className="mr-2" /> {volunteer.availability.length === 0 ? volunteer.preferences : volunteer.availability}
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {volunteer.skills.map(skill => (
@@ -196,7 +194,7 @@ const VolunteerMatchingPage = () => {
               <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-bold text-gray-800">{match.volunteer.name}</h3>
+                    <h3 className="font-bold text-gray-800">{match.volunteer.fullName}</h3>
                     <p className="text-sm text-gray-600">matched with: <strong>{match.event.event_name}</strong></p>
                     <p className='text-sm text-gray-600 mt-1'>
                         Distance: {(match.distanceInMeters / 1609.34).toFixed(1)} miles
