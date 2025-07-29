@@ -8,6 +8,7 @@ const dbConfig = {
   user: process.env.DB_user,
   password: process.env.DB_password,
   database: process.env.DB_database,
+  port: process.env.DB_PORT || 3306
   // this is for when we deploy
   // ssl: {
   //   rejectUnauthorized: true

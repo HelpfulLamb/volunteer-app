@@ -1,172 +1,121 @@
 const db = require('../db.js');
+const bcrypt = require('bcrypt');
 
-const volunteers = [
-    {
-      id: 1,
-      fullName: 'Alex Johnson',
-      email: 'alex.johnson@example.com',
-      password: 'password123',
-      role: 'volunteer',
-      phone: '2037370249',
-      skills: ['First Aid', 'Translation', 'Event Planning'],
-      preferences: 'Weekends, Weekday evenings',
-      address1: '3509 Elgin St',
-      address2: '',
-      city: 'Houston',
-      state: 'TX',
-      zip: '77004',
-      availability: [],
-      assigned: false
-    },
-    {
-      id: 2,
-      fullName: 'Maria Garcia',
-      email: 'maria.garcia@example.com',
-      password: 'password123',
-      role: 'volunteer',
-      phone: '9142582744',
-      skills: ['Cooking', 'Driving', 'Childcare'],
-      preferences: '',
-      address1: '4301 Crane St',
-      address2: '',
-      city: 'Houston',
-      state: 'TX',
-      zip: '77206',
-      availability: ['2025-07-26'],
-      assigned: false
-    },
-    {
-        id: 3,
-        fullName: 'Alice Grimes',
-        email: 'alice.grimes@example.com',
-        password: 'password123',
-        role: 'volunteer',
-        phone: '7865640987',
-        skills: ['Patient', 'Driving', 'IT', 'Designer', 'Communication'],
-        preferences: 'Weekdays Only',
-        address1: '252 Schermerhorn St',
-        address2: '',
-        city: 'Brooklyn',
-        state: 'NY',
-        zip: '11217',
-        availability: [],
-        assigned: false
-    },
-    {
-        id: 4,
-        fullName: 'Bob Ross',
-        email: 'bob.ross@example.com',
-        password: 'password123',
-        role: 'volunteer',
-        phone: '1877342203',
-        skills: ['Communication', 'Patient', 'Driving', 'Designer'],
-        preferences: 'Weekends, Weekdays',
-        address1: '555 S Lamar St',
-        address2: '',
-        city: 'Dallas',
-        state: 'TX',
-        zip: '75202',
-        availability: [],
-        assigned: false
-    }
-];
-
-const admins = [
-    {
-      id: 5,
-      fullName: 'James Wilson',
-      email: 'james.wilson@example.com',
-      password: 'adminpassword',
-      role: 'admin',
-      phone: '1234567890',
-      address1: '768 5th Ave',
-      address2: '',
-      city: 'New York',
-      state: 'NY',
-      zip: '10019'
-    }
-];
-
-let userIdCounter = 6; // Start counter from the next available ID
-
-exports.findVolById = (id) => {
-    const volunteer = volunteers.find(v => v.id === id);
-    if(!volunteer) {
-        return null;
-    }
-    return volunteer;
+exports.findVolById = async (id) => {
+    const sql = `
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode as zip, u.assigned,
+               (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
+               (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
+        FROM USERPROFILE u
+        JOIN USERCREDENTIALS c ON u.u_id = c.u_id
+        WHERE u.u_id = ? AND u.role = 'volunteer'
+    `;
+    const [rows] = await db.query(sql, [id]);
+    return rows[0];
 };
 
-exports.findAdminById = (id) => {
-    const admin = admins.find(a => a.id === id);
-    if(!admin) {
-        return null;
-    }
-    return admin;
+exports.findAdminById = async (id) => {
+    const sql = `
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode as zip
+        FROM USERPROFILE u
+        JOIN USERCREDENTIALS c ON u.u_id = c.u_id
+        WHERE u.u_id = ? AND u.role = 'admin'
+    `;
+    const [rows] = await db.query(sql, [id]);
+    return rows[0];
 };
 
-exports.findUserByEmail = (email, role) => {
-    if(role === 'admin'){
-        return admins.find(user => user.email === email);
-    } else {
-        return volunteers.find(user => user.email === email);
-    }
+exports.findUserByEmail = async (email, role) => {
+    const sql = `
+        SELECT u.u_id, u.role, c.email, c.password
+        FROM USERPROFILE u
+        JOIN USERCREDENTIALS c ON u.u_id = c.u_id
+        WHERE c.email = ? AND u.role = ?
+    `;
+    const [rows] = await db.query(sql, [email, role]);
+    return rows[0];
 };
 
-exports.createUser = (userData) => {
+exports.createUser = async (userData) => {
     const { email, password, role } = userData;
-    const newUser = {
-        id: userIdCounter++,
-        fullName: '', // Assuming username is used as name
-        email: email,
-        password: password,
-        role: role || 'volunteer', // Default role to volunteer if not specified
-        phone: '',
-        skills: [], // New users start with no skills
-        preferences: '',
-        availability: [], // New users start with no availability
-        address1: '', // New users start with no location
-        address2: '',
-        city: '',
-        state: '',
-        zip: '',
-        assigned: false
-    };
-    if(role === 'admin'){
-        admins.push(newUser);
-    } else {
-        volunteers.push(newUser);
+    const connection = await db.getConnection();
+    await connection.beginTransaction();
+    try {
+        const [userProfileResult] = await connection.query('INSERT INTO USERPROFILE (role) VALUES (?)', [role]);
+        const userId = userProfileResult.insertId;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await connection.query('INSERT INTO USERCREDENTIALS (u_id, email, password) VALUES (?, ?, ?)', [userId, email, hashedPassword]);
+        await connection.commit();
+        return { id: userId, email, role };
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
     }
-    return newUser;
 };
 
-exports.getAllVolunteers = () => {
-    return volunteers;
+exports.getAllVolunteers = async () => {
+    const sql = `
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode as zip, u.assigned,
+               (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
+               (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
+        FROM USERPROFILE u
+        JOIN USERCREDENTIALS c ON u.u_id = c.u_id
+        WHERE u.role = 'volunteer'
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
 };
 
-exports.getAllAdmins = () => {
-    return admins;
+exports.getAllAdmins = async () => {
+    const sql = `
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode as zip
+        FROM USERPROFILE u
+        JOIN USERCREDENTIALS c ON u.u_id = c.u_id
+        WHERE u.role = 'admin'
+    `;
+    const [rows] = await db.query(sql);
+    return rows;
 };
 
-exports.updateProfile = (id, updatedProfile, role) => {
-    const userList = role === 'admin' ? admins : volunteers;
-    const user = userList.find(u => u.id === id);
-    if(!user){
-        return null;
-    }
-    Object.keys(updatedProfile).forEach(key => {
-        if(user.hasOwnProperty(key)) {
-            user[key] = updatedProfile[key];
+exports.updateProfile = async (id, updatedProfile, role) => {
+    const { fullName, phone, address1, address2, city, state, zip, skills, preferences, availability } = updatedProfile;
+    const connection = await db.getConnection();
+    await connection.beginTransaction();
+    try {
+        const [fname, lname] = fullName.split(' ');
+        await connection.query(
+            'UPDATE USERPROFILE SET fname = ?, lname = ?, phone = ?, preferences = ?, address1 = ?, address2 = ?, city = ?, state = ?, zipcode = ? WHERE u_id = ?',
+            [fname, lname, phone, preferences, address1, address2, city, state, zip, id]
+        );
+
+        if (role === 'volunteer') {
+            await connection.query('DELETE FROM VOLUNTEER_SKILLS WHERE u_id = ?', [id]);
+            if (skills && skills.length > 0) {
+                const skillsQuery = 'INSERT INTO VOLUNTEER_SKILLS (u_id, s_id) SELECT ?, s_id FROM SKILLS WHERE skill IN (?)';
+                await connection.query(skillsQuery, [id, skills]);
+            }
+
+            await connection.query('DELETE FROM AVAILABILITY WHERE u_id = ?', [id]);
+            if (availability && availability.length > 0) {
+                const availabilityQuery = 'INSERT INTO AVAILABILITY (u_id, available_date) VALUES ?';
+                const availabilityValues = availability.map(date => [id, date]);
+                await connection.query(availabilityQuery, [availabilityValues]);
+            }
         }
-    });
-    return user;
+        await connection.commit();
+        const [rows] = await connection.query('SELECT * FROM USERPROFILE WHERE u_id = ?', [id]);
+        return rows[0];
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
 };
 
-exports.deleteUser = (id) => {
-    const index = volunteers.findIndex(v => v.id === id);
-    if(index === -1) {
-        return null;
-    }
-    const deleted = volunteers.splice(index, 1);
-    return deleted[0];
+exports.deleteUser = async (id) => {
+    const [result] = await db.query('DELETE FROM USERPROFILE WHERE u_id = ?', [id]);
+    return result.affectedRows > 0;
 };
