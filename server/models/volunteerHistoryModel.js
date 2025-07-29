@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const moment = require('moment');
+const db = require('../db.js');
 
 // In-memory storage for volunteer history (replace with database in production)
 const volunteerHistory = [

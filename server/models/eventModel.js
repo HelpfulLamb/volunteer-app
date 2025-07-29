@@ -1,3 +1,4 @@
+const db = require('../db.js');
 
 const events = [
     {
