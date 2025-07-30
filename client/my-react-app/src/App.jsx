@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {Routes, Route, useLocation} from 'react-router-dom';
 import './App.css'
 
-import { AuthProvider } from './context/AuthContext.jsx';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
 
 import Sidebar from './site/Sidebar.jsx';
@@ -18,42 +18,59 @@ import NotificationsPage from './site/NotificationsPage.jsx';
 import Login from './context/Login.jsx';
 import Registration from './context/Registration.jsx';
 
-function App() {
+
+function AppRoutes() {
   const location = useLocation();
   const authRoutes = ['/', '/login', '/registration'];
   const isAuthRoute = authRoutes.includes(location.pathname);
+  const { user } = useAuth();
+  return isAuthRoute ? (
+    <Routes>
+      <Route path='/' element={<Login />} />
+      <Route path='/login' element={<Login />} />
+      <Route path='/registration' element={<Registration />} />
+    </Routes>
+  ) : (
+    <div className='flex'>
+      <Sidebar />
+      <div className='ml-64 p-6 w-full'>
+        <Routes>
+          <Route path='/home' element={<Home />} />
+          {user?.role === 'admin' ? (
+            <>
+              <Route path='/create-event' element={<EventManagementForm />} />
+              <Route path='/matching' element={<VolunteerMatchingPage />} />
+              <Route path='/events-list' element={<EventsList />}/>
+              <Route path='/edit-event/:id' element={<EditEvent />} />
+              <Route path='/profile' element={<UserProfile />} />
+              <Route path='/edit-profile' element={<PersonalInfoSection />} />
+              <Route path='/volunteer-history' element={<VolunteerHistory />} />
+              <Route path='/notifications' element={<NotificationsPage />} />
+            </>
+          ) : (
+            <>
+              <Route path='/profile' element={<UserProfile />} />
+              <Route path='/edit-profile' element={<PersonalInfoSection />} />
+              <Route path='/volunteer-history' element={<VolunteerHistory />} />
+              <Route path='/notifications' element={<NotificationsPage />} />
+            </>
+          )}
+          <Route path='*' element={<div>404 - Page Not Found</div>} />
+        </Routes>
+      </div>
+    </div>
+  );
+}
 
+
+function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        {isAuthRoute ? (
-          <Routes>
-            <Route path='/' element={<Login />} />
-            <Route path='/login' element={<Login />} />
-            <Route path='/registration' element={<Registration />} />
-          </Routes>
-        ) : (
-          <div className='flex'>
-            <Sidebar />
-            <div className='ml-64 p-6 w-full'>
-              <Routes>
-                <Route path='/home' element={<Home />} />
-                <Route path='/create-event' element={<EventManagementForm />} />
-                <Route path='/matching' element={<VolunteerMatchingPage />} />
-                <Route path='/events-list' element={<EventsList />}/>
-                <Route path='/edit-event/:id' element={<EditEvent />} />
-                <Route path='/profile' element={<UserProfile />} />
-                <Route path='/edit-profile' element={<PersonalInfoSection />} />
-                <Route path='/volunteer-history' element={<VolunteerHistory />} />
-                <Route path='/notifications' element={<NotificationsPage />} />
-                <Route path='*' element={<div>404 - Page Not Found</div>} />
-              </Routes>
-            </div>
-          </div>
-        )}
+        <AppRoutes />
       </ToastProvider>
     </AuthProvider>
-  )
+  );
 }
 
 export default App

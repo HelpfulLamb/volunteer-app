@@ -68,7 +68,7 @@ export default function UserProfile() {
           <p><strong>Phone:</strong> {profile.phone}</p>
           <p><strong>Address:</strong> {profile.address1}, {profile.city}, {profile.state} {profile.zip}</p>
         </div>
-        {user.role === 'volunteer' && (
+        {user?.role === 'volunteer' && (
             <div>
                 <h2 className="text-lg font-semibold mb-2">Volunteer Info</h2>
                 <p><strong>Skills:</strong></p>

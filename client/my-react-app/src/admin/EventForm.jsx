@@ -1,24 +1,53 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function EventManagementForm({ initialData = {}, onSubmit, mode = 'create' }) {
+  const [skills, setSkills] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({error: '', success: ''});
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    event_name: initialData.event_name || '',
-    event_description: initialData.event_description || '',
-    event_location: initialData.event_location || '',
-    event_skills: initialData.event_skills || [],
-    event_urgency: initialData.event_urgency || '',
-    event_date: initialData.event_date || '',
+    event_name: '',
+    event_description: '',
+    event_location: '',
+    event_skills: [],
+    event_urgency: '',
+    event_date: '',
   });
 
+  useEffect(() => {
+    if(mode === 'edit' && initialData && Object.keys(initialData).length > 0){
+      setFormData({
+        id: initialData.id || '',
+        event_name: initialData.event_name || '',
+        event_description: initialData.event_description || '',
+        event_location: initialData.event_location || '',
+        event_skills: initialData.event_skills || [],
+        event_urgency: initialData.event_urgency || '',
+        event_date: initialData.event_date?.slice(0,10) || '',
+      })
+    }
+  }, [initialData, mode]);
+
   // event and volunteer options
-  const skillsOptions = [
-    'First Aid', 'Cooking', 'Teaching', 'Logistics', 
-    'Crowd Control', 'Communication', 'Multilingual Skills', 'Photography',
-    'IT', 'Driving'
-  ];
-  const urgencyLevels = ['Low', 'Medium', 'High', 'Critical'];
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await fetch('/api/items/skills');
+        if(!response.ok){
+          throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch skills.`);
+        }
+        const data = await response.json();
+        //console.log(data);
+        setSkills(data);
+      } catch (error) {
+        setErrors(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSkills();
+  }, []);
+
   const today = new Date();
   const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
@@ -28,10 +57,9 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
   };
 
   const handleSkillToggle = (skill) => {
-    setFormData((prev) => {
-      const updated = prev.event_skills.includes(skill)
-        ? prev.event_skills.filter((s) => s !== skill)
-        : [...prev.event_skills, skill];
+    setFormData(prev => {
+      const exists = prev.event_skills.some(s => s.s_id === skill.s_id);
+      const updated = exists ? prev.event_skills.filter(s => s.s_id !== skill.s_id) : [...prev.event_skills, {s_id: skill.s_id}];
       return { ...prev, event_skills: updated };
     });
   };
@@ -74,22 +102,25 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
         if(response.ok) {
           setMessage({success: 'Event created successfully.', error: ''});
           setFormData({
-            event_name: '',
-            event_description: '',
-            event_location: '',
-            event_skills: [],
-            event_urgency: '',
-            event_date: '',
+            event_name: data.event_name || '',
+            event_description: data.event_description || '',
+            event_location: data.event_location || '',
+            event_skills: data.event_skills || [],
+            event_urgency: data.event_urgency || '',
+            event_date: data.event_date || '',
           });
-          onCreateEvent(data.events);
         } else {
           setMessage({error: 'Failed to create new event.', success: ''});
         }
       } catch (error) {
+        setErrors(error.message);
         setMessage({error: 'An error occurred while trying to create an event, please try again.', success: ''});
       }
     }
   };
+
+  if(loading) return <div>Loading...</div>;
+  if(message.error) return <div>Error: {message.error}</div>;
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white shadow-md rounded-2xl space-y-6">
@@ -115,14 +146,14 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
       <div>
         <label className="font-medium">Required Skills*</label>
         <div className="flex flex-wrap gap-2">
-          {skillsOptions.map((skill) => (
-            <button type="button" key={skill} onClick={() => handleSkillToggle(skill)}
+          {skills.map((skill) => (
+            <button type="button" key={skill.s_id} onClick={() => handleSkillToggle(skill)}
               className={`px-3 py-1 rounded-full border ${
-                formData.event_skills.includes(skill)
+                formData.event_skills.some(s => s.s_id === skill.s_id)
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700'
               }`}>
-              {skill}
+              {skill.skill}
             </button>
           ))}
         </div>
@@ -132,9 +163,9 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
         <label className="font-medium">Urgency*</label>
         <select name="event_urgency" value={formData.event_urgency} onChange={handleChange} required className="w-full border border-gray-300 px-3 py-2 rounded-lg" >
           <option value="">Select urgency</option>
-          {urgencyLevels.map((level) => (
-            <option key={level} value={level}>{level}</option>
-          ))}
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
         </select>
       </div>
       <div>
