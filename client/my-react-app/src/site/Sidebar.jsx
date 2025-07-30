@@ -7,19 +7,29 @@ export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState('/home');
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
-  const navItems = [
+  let navItems = [
     { label: 'Dashboard', path: '/home', icon: <FaHome /> },
-    { label: 'Events List', path: '/events-list', icon: <FaClipboardList /> },
-    { label: 'Create Event', path: '/create-event', icon: <FaPlusCircle /> },
-    { label: 'Volunteer Matching', path: '/matching', icon: <FaUsers /> },
-    { label: 'Reports', path: '/report', icon: <FaChartBar /> },
-    { label: 'Notifications', path: '/notifications', icon: <FaBell /> },
-    { label: 'Profile', path: '/profile', icon: <FaUser /> },
-    { label: 'History', path: '/volunteer-history', icon: <FaHistory /> },
-    { label: 'Logout', path: 'LOGOUT', icon: <FaSignOutAlt /> },
   ];
+  if(user?.role === 'admin'){
+    navItems = navItems.concat([
+      { label: 'Events List', path: '/events-list', icon: <FaClipboardList /> },
+      { label: 'Create Event', path: '/create-event', icon: <FaPlusCircle /> },
+      { label: 'Volunteer Matching', path: '/matching', icon: <FaUsers /> },
+      { label: 'Reports', path: '/report', icon: <FaChartBar /> },
+    ]);
+  }
+  if(user?.role === 'volunteer'){
+    navItems = navItems.concat([
+      { label: 'History', path: '/volunteer-history', icon: <FaHistory /> },
+    ]);
+  }
+  navItems = navItems.concat([
+    { label: 'Profile', path: '/profile', icon: <FaUser /> },
+    { label: 'Notifications', path: '/notifications', icon: <FaBell /> },
+    { label: 'Logout', path: 'LOGOUT', icon: <FaSignOutAlt /> },
+  ]);
 
   const handleNavigation = (path) => {
     if(path === 'LOGOUT') {
@@ -36,7 +46,7 @@ export default function Sidebar() {
       <div className="flex flex-col h-full">
         <div className={`flex items-center ${isCollapsed ? 'justify-center p-4' : 'justify-between p-6'}`}>
           {!isCollapsed && (
-            <h1 className="text-xl font-bold">Admin Panel</h1>
+            <h1 className="text-xl font-bold">{user?.role === 'admin' ? 'Admin Panel' : 'Volunteer Dashboard'}</h1>
           )}
           <button onClick={() => setIsCollapsed(!isCollapsed)} className="p-2 rounded-full hover:bg-indigo-700" aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
             {isCollapsed ? (

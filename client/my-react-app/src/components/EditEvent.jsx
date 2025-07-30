@@ -12,11 +12,13 @@ export default function EditEvent() {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
+        //console.log(id);
         const response = await fetch(`/api/events/${id}/find`);
         if(!response.ok) {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to locate event.`);
         }
         const data = await response.json();
+        //console.log(data);
         setEventToEdit(data);
       } catch (error) {
         setMessage({error: 'An error occurred while trying to fetch the event. Please try again.', success: ''});

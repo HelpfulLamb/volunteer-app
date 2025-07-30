@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 
 export default function PersonalInfoSection() {
   const [errors, setErrors] = useState({});
+  const [states, setStates] = useState([]);
+  const [skills, setSkills] = useState([]);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -22,7 +24,22 @@ export default function PersonalInfoSection() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const formatPhone = (value) => {
+    const digits = value.replace(/\D/g, '');
+    if(digits.length >= 4 && digits.length <= 6){
+      return `(${digits.slice(0,3)}) ${digits.slice(3)}`;
+    } else if(digits.length > 6){
+      return `(${digits.slice(0,3)}) ${digits.slice(3,6)} - ${digits.slice(6,10)}`;
+    }
+    return digits;
+  };
+
   const handleChange = (field, value) => {
+    if(field === 'phone'){
+      const formatted = formatPhone(value);
+      setFormData({ ...formData, [field]: formatted});
+      return;
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -57,26 +74,62 @@ export default function PersonalInfoSection() {
     e.preventDefault();
     //console.log('Save button clicked, form submitting...');
     if(!validateForm()) {
-        //console.log('Validation failed:', errors);
-        return;
+      //console.log('Validation failed:', errors);
+      return;
     };
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    const submissionData = { ...formData, phone: cleanPhone };
     try {
-        const response = await fetch(`/api/users/update-profile/${user.id}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify(formData),
-        });
-        if(!response.ok) {
-            throw new Error(`HTTP Error! Status: ${response.status}. Failed to update event.`);
-        }
-        navigate('/profile');
+      const response = await fetch(`/api/users/update-profile/${user.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(submissionData),
+      });
+      if(!response.ok) {
+        throw new Error(`HTTP Error! Status: ${response.status}. Failed to update event.`);
+      }
+      navigate('/profile');
     } catch (error) {
       setErrors(error.message);
     }
   };
+
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const response = await fetch('/api/items/states');
+        if(!response.ok){
+          throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch states.`);
+        }
+        const data = await response.json();
+        //console.log(data)
+        setStates(data);
+      } catch (error) {
+        setErrors(error.message);
+      }
+    };
+    fetchStates();
+  }, []);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await fetch('/api/items/skills');
+        if(!response.ok){
+          throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch skills.`);
+        }
+        const data = await response.json();
+        //console.log(data);
+        setSkills(data);
+      } catch (error) {
+        setErrors(error.message);
+      }
+    };
+    fetchSkills();
+  }, []);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -89,7 +142,7 @@ export default function PersonalInfoSection() {
         setFormData({
           fullName: data.fullName || '',
           email: data.email || '',
-          phone: data.phone || '',
+          phone: formatPhone(data.phone) || '',
           address1: data.address1 || '',
           address2: data.address2 || '',
           city: data.city || '',
@@ -106,8 +159,6 @@ export default function PersonalInfoSection() {
     if(user?.id) fetchProfile();
   }, [user]);
 
-  
-
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">My Profile</h1>
@@ -116,19 +167,19 @@ export default function PersonalInfoSection() {
         <h2 className="text-xl font-semibold text-gray-700 mb-6 pb-2 border-b border-gray-200">Personal Information</h2>
         <div className="space-y-3">
           <div>
-            <label className="text-sm font-medium text-gray-700">Full Name</label>
+            <label className="text-sm font-medium text-gray-700">Full Name*</label>
             <input type="text" maxLength={50} required value={formData.fullName} onChange={e => handleChange('fullName', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.fullName && <p className='text-red-600 text-sm'>{errors.fullName}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Phone</label>
-            <input type="tel" maxLength={10} required value={formData.phone} onChange={e => handleChange('phone', e.target.value)} 
+            <label className="text-sm font-medium text-gray-700">Phone*</label>
+            <input type="tel" maxLength={16} required value={formData.phone} onChange={e => handleChange('phone', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.phone && <p className='text-red-600 text-sm'>{errors.phone}</p>}
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700 ">Address Line 1</label>
+            <label className="text-sm font-medium text-gray-700 ">Address Line 1*</label>
             <input type="text" maxLength={100} required value={formData.address1} onChange={e => handleChange('address1', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.address1 && <p className='text-red-600 text-sm'>{errors.address1}</p>}
@@ -140,24 +191,22 @@ export default function PersonalInfoSection() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">City</label>
+              <label className="text-sm font-medium text-gray-700">City*</label>
               <input type="text" maxLength={100} required value={formData.city} onChange={e => handleChange('city', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.city && <p className='text-red-600 text-sm'>{errors.city}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">State</label>
-              <select required value={formData.state} onChange={e => handleChange('state', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
-                <option value="">Select State</option>
-                <option value="CA">California</option>
-                <option value="NY">New York</option>
-                <option value="TX">Texas</option>
-                <option value="FL">Florida</option>
+              <label className="text-sm font-medium text-gray-700">State*</label>
+              <select required value={states.state_code} onChange={e => handleChange('state', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                {states.map((state) => (
+                  <option key={state.state_code} value={state.state_code}>{state.state_name}</option>
+                ))}
               </select>
               {errors.state && <p className='text-red-600 text-sm'>{errors.state}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Zip Code</label>
-              <input type="text" placeholder="e.g. 12345" pattern="\d{5,9}" required value={formData.zip} onChange={e => handleChange('zip', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              <label className="text-sm font-medium text-gray-700">Zip Code*</label>
+              <input type="text" maxLength={5} placeholder="e.g. 12345" pattern="\d{5,9}" required value={formData.zip} onChange={e => handleChange('zip', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.zip && <p className='text-red-600 text-sm'>{errors.zip}</p>}
             </div>
           </div>
@@ -175,12 +224,9 @@ export default function PersonalInfoSection() {
                   const selected = [...e.target.selectedOptions].map(opt => opt.value);
                   handleChange('skills', selected);
                 }}>
-                <option value="First Aid">First Aid</option>
-                <option value="Event Setup">Event Setup</option>
-                <option value="Translation">Translation</option>
-                <option value="Cooking">Cooking</option>
-                <option value="Driving">Driving</option>
-                <option value="Teaching">Teaching</option>
+                  {skills.map((skill) => (
+                    <option key={skill.s_id} value={skill.s_id}>{skill.skill}</option>
+                  ))}
               </select>
               <p className="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple options</p>
               {errors.skills && <p className='text-red-600 text-sm'>{errors.skills}</p>}

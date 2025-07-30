@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 function EventTable({ eventInformation, onDelete }) {
   const navigate = useNavigate();
   if(!eventInformation || !Array.isArray(eventInformation)) {
     return <div>No Event data is available!</div>
   }
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4">Events List</h1>
@@ -22,7 +26,7 @@ function EventTable({ eventInformation, onDelete }) {
           {eventInformation.map((event) => (
             <tr key={event.id}>
               <td className="p-2">{event.event_name}</td>
-              <td className="p-2">{event.event_date}</td>
+              <td className="p-2">{formatDate(event.event_date)}</td>
               <td className="p-2">{event.event_location}</td>
               <td className="p-2 space-x-2">
                 <button className="text-blue-600 hover:underline" onClick={() => navigate(`/edit-event/${event.id}`)}>Edit</button>
@@ -41,7 +45,6 @@ export default function EventsList() {
   const [message, setMessage] = useState({error: '', success: ''});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   // retrieve all the events
   useEffect(() => {
@@ -52,7 +55,7 @@ export default function EventsList() {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch events.`);
         }
         const data = await response.json();
-        console.log(data.events);
+        //console.log(data.events);
         setEvents(data.events);
       } catch (error) {
         setError(error.message);
@@ -74,7 +77,8 @@ export default function EventsList() {
         if(!response.ok) {
             throw new Error(`HTTP Error! Status: ${response.status}. Failed to delete event.`);
         }
-        navigate('/events-list');
+        //console.log('event deleted');
+        setEvents(prev => prev.filter(event => event.id !== id));
     } catch (error) {
         setMessage({error: 'An error occurred while trying to delete an event. Please try again.', success: ''});
         setError(error.message);
@@ -85,6 +89,10 @@ export default function EventsList() {
   if(error) return <div>Error: {error}</div>;
 
   return (
-    <EventTable eventInformation={events} onDelete={handleDelete} />
+    <>
+      {message.error && <p className="text-red-600">{message.error}</p>}
+      {message.success && <p className="text-green-600">{message.success}</p>}
+      <EventTable eventInformation={events} onDelete={handleDelete} />
+    </>
   );
 }

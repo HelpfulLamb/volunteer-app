@@ -79,6 +79,11 @@ const VolunteerMatchingPage = () => {
     return matchesSearch && matchesSkills && matchesAvailability && matchesLocation;
   });
 
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
   if(loading) return <p>Loading...</p>;
   if(error) return <p>Error: {error}</p>;
 
@@ -129,7 +134,7 @@ const VolunteerMatchingPage = () => {
                     <FiMapPin className="mr-2" /> {`${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zip}`}
                   </div>
                   <div className="flex items-center text-gray-600 text-sm mb-2">
-                    <FiClock className="mr-2" /> {volunteer.availability.length === 0 ? volunteer.preferences : volunteer.availability}
+                    <FiClock className="mr-2" /> {volunteer.availability.length === 0 ? volunteer.preferences : formatDate(volunteer.availability)}
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {volunteer.skills.map(skill => (
@@ -164,7 +169,7 @@ const VolunteerMatchingPage = () => {
                     <FiMapPin className="mr-2" /> {event.event_location}
                   </div>
                   <div className="flex items-center text-gray-600 text-sm mb-2">
-                    <FiCalendar className="mr-2" /> {event.event_date}
+                    <FiCalendar className="mr-2" /> {formatDate(event.event_date)}
                   </div>
                   <div className="text-sm mb-2">
                     <span className="font-medium">Volunteers Needed:</span> {event.volunteersNeeded}

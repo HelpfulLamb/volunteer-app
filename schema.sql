@@ -46,6 +46,7 @@ u_id int,
 available_date date,
 primary key (u_id, available_date),
 foreign key (u_id) references USERPROFILE(u_id)
+on delete CASCADE
 );
 
 create table EVENTDETAILS (
@@ -62,7 +63,7 @@ e_id int,
 s_id int,
 primary key(e_id, s_id),
 foreign key (e_id) references EVENTDETAILS(e_id)
-on delete SET NULL,
+on delete CASCADE,
 foreign key (s_id) references SKILLS(s_id)
 );
 
@@ -101,6 +102,8 @@ message text,
 status enum('unread', 'read') default 'unread',
 createdAt datetime,
 readAt datetime,
-foreign key (u_id) references USERPROFILE(u_id),
+foreign key (u_id) references USERPROFILE(u_id)
+on delete CASCADE,
 foreign key (e_id) references EVENTDETAILS(e_id)
+on delete CASCADE
 );
