@@ -52,38 +52,31 @@ exports.findAdminById = (req, res) => {
     }
 };
 
-exports.loginUser = (req, res) => {
+exports.loginUser = async (req, res) => {
     const { email, password, role } = req.body;
 
-    if (!email || !password || !role) {
-        return res.status(400).json({ message: 'Email, password, and role are required.' });
-    }
-
     try {
-        const user = userModel.findUserByEmail(email, role);
+        const user = await User.findUserByEmail(email, role);
 
-        if (!user || !(bcrypt.compare(password, user.password)) || user.role !== role) {
-            return res.status(401).json({ message: 'Invalid credentials or role.' });
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign(
-            {id: user.id, role: user.role},
-            process.env.JWT_SECRET,
-            {expiresIn: '1h'}
-        );
+        // If user exists, then compare passwords.
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
 
-        res.status(200).json({
-            message: 'Login successful.',
-            token,
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role
-            }
+        const token = jwt.sign({ id: user.u_id, role: user.role }, process.env.JWT_SECRET, {
+            expiresIn: '1h',
         });
+
+        res.json({ token, user: { id: user.u_id, email: user.email, role: user.role } });
+
     } catch (error) {
-        //console.error(error.message);
-        res.status(500).json({ message: "Internal Server Error" });
+        console.error('Login error:', error);
+        res.status(500).send('Server error');
     }
 };
 
