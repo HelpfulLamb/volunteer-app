@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 exports.findVolById = async (id) => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode as zip, u.assigned,
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.assigned,
                (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
                (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
         FROM USERPROFILE u
@@ -11,6 +11,7 @@ exports.findVolById = async (id) => {
         WHERE u.u_id = ? AND u.role = 'volunteer'
     `;
     const [rows] = await db.query(sql, [id]);
+    //console.log(rows[0]);
     return rows[0];
 };
 
@@ -43,12 +44,12 @@ exports.createUser = async (userData) => {
     try {
         const [userProfileResult] = await connection.query('INSERT INTO USERPROFILE (role) VALUES (?)', [role]);
         const userId = userProfileResult.insertId;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        await connection.query('INSERT INTO USERCREDENTIALS (u_id, email, password) VALUES (?, ?, ?)', [userId, email, hashedPassword]);
+        await connection.query('INSERT INTO USERCREDENTIALS (u_id, email, password) VALUES (?, ?, ?)', [userId, email, password]);
         await connection.commit();
         return { id: userId, email, role };
     } catch (error) {
         await connection.rollback();
+        console.error('createUser model catch:', error.message);
         throw error;
     } finally {
         connection.release();
@@ -80,35 +81,59 @@ exports.getAllAdmins = async () => {
 };
 
 exports.updateProfile = async (id, updatedProfile, role) => {
-    const { fullName, phone, address1, address2, city, state, zip, skills, preferences, availability } = updatedProfile;
     const connection = await db.getConnection();
-    await connection.beginTransaction();
     try {
-        const [fname, lname] = fullName.split(' ');
-        await connection.query(
-            'UPDATE USERPROFILE SET fname = ?, lname = ?, phone = ?, preferences = ?, address1 = ?, address2 = ?, city = ?, state = ?, zipcode = ? WHERE u_id = ?',
-            [fname, lname, phone, preferences, address1, address2, city, state, zip, id]
-        );
-
+        await connection.beginTransaction();
+        const allowedFields = ['fullName', 'phone', 'address1', 'address2', 'city', 'state', 'zipcode', 'preferences'];
+        const updates = [];
+        const values = [];
+        for(const key of allowedFields){
+          if(updatedProfile.hasOwnProperty(key)){
+            if(key === 'fullName'){
+              const [fname, lname] = updatedProfile.fullName.split(' ');
+              updates.push('fname = ?', 'lname = ?');
+              values.push(fname, lname);
+              continue;
+            }
+            updates.push(`${key} = ?`);
+            values.push(updatedProfile[key]);
+          }
+        }
+        if(updates.length === 0){
+          throw new Error('No valid fields provided for update.');
+        }
+        const query = `UPDATE USERPROFILE SET ${updates.join(', ')} WHERE u_id = ?`;
+        values.push(id);
+        await connection.query(query, values);
+        // updating volunteer skills
         if (role === 'volunteer') {
+          const { skills, availability } = updatedProfile;
+          if(updatedProfile.skills){
+            //console.log('user id:', id);
+            //console.log('skill id: ', skills);
             await connection.query('DELETE FROM VOLUNTEER_SKILLS WHERE u_id = ?', [id]);
             if (skills && skills.length > 0) {
-                const skillsQuery = 'INSERT INTO VOLUNTEER_SKILLS (u_id, s_id) SELECT ?, s_id FROM SKILLS WHERE skill IN (?)';
-                await connection.query(skillsQuery, [id, skills]);
+                const skillPairs = skills.map(skillId => [id, skillId]);
+                const skillsQuery = 'INSERT INTO VOLUNTEER_SKILLS (u_id, s_id) VALUES ?';
+                await connection.query(skillsQuery, [skillPairs]);
             }
-
+          }
+          if(updatedProfile.availability){
+            //console.log(availability);
             await connection.query('DELETE FROM AVAILABILITY WHERE u_id = ?', [id]);
-            if (availability && availability.length > 0) {
+            const validDates = availability.filter(date => typeof date === 'string' && date.trim() !== '').map(date => [id, date]);
+            if (validDates.length > 0) {
                 const availabilityQuery = 'INSERT INTO AVAILABILITY (u_id, available_date) VALUES ?';
-                const availabilityValues = availability.map(date => [id, date]);
-                await connection.query(availabilityQuery, [availabilityValues]);
+                await connection.query(availabilityQuery, [validDates]);
             }
+          }
         }
         await connection.commit();
         const [rows] = await connection.query('SELECT * FROM USERPROFILE WHERE u_id = ?', [id]);
         return rows[0];
     } catch (error) {
         await connection.rollback();
+        console.error('updateProfile model catch:', error.message);
         throw error;
     } finally {
         connection.release();

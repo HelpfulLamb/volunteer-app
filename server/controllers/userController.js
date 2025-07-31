@@ -4,50 +4,50 @@ const dotenv = require('dotenv');
 dotenv.config({path: '../.env'});
 const userModel = require('../models/userModel.js');
 
-exports.getAllVolunteers = (req, res) => {
+exports.getAllVolunteers = async (req, res) => {
     try {
-        const volunteers = userModel.getAllVolunteers();
+        const volunteers = await userModel.getAllVolunteers();
         res.status(200).json({volunteers});
     } catch (error) {
-        //console.error(error.message);
+        console.error('getAllVolunteers controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
 
-exports.getAllAdmins = (req, res) => {
+exports.getAllAdmins = async (req, res) => {
     try {
-        const admins = userModel.getAllAdmins();
+        const admins = await userModel.getAllAdmins();
         res.status(200).json({admins});
     } catch (error) {
-        //console.error(error.message);
+        console.error('getAllAdmins controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
 
-exports.findVolunteerById = (req, res) => {
+exports.findVolunteerById = async (req, res) => {
     const id = parseInt(req.params.id);
     try {
-        const volFound = userModel.findVolById(id);
+        const volFound = await userModel.findVolById(id);
         if(!volFound) {
             return res.status(404).json({message: 'Volunteer not found.'});
         }
         res.status(200).json(volFound);
     } catch (error) {
-        //console.error(error.message);
+        console.error('findVolunteerById controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
 
-exports.findAdminById = (req, res) => {
+exports.findAdminById = async (req, res) => {
     const id = parseInt(req.params.id);
     try {
-        const adminFound = userModel.findAdminById(id);
+        const adminFound = await userModel.findAdminById(id);
         if(!adminFound) {
             return res.status(404).json({message: 'Admin not found.'});
         }
         res.status(200).json(adminFound);
     } catch (error) {
-        //console.error(error.message);
+        console.error('findAdminById controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
@@ -56,16 +56,16 @@ exports.loginUser = async (req, res) => {
     const { email, password, role } = req.body;
 
     try {
-        const user = await User.findUserByEmail(email, role);
+        const user = await userModel.findUserByEmail(email, role);
 
         if (!user) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Invalid credentials. User with that email does not exist.' });
         }
 
         // If user exists, then compare passwords.
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Invalid credentials. Wrong password.' });
         }
 
         const token = jwt.sign({ id: user.u_id, role: user.role }, process.env.JWT_SECRET, {
@@ -75,7 +75,7 @@ exports.loginUser = async (req, res) => {
         res.json({ token, user: { id: user.u_id, email: user.email, role: user.role } });
 
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error.message);
         res.status(500).send('Server error');
     }
 };
@@ -92,13 +92,13 @@ exports.registerUser = async (req, res) => {
     }
 
     try {
-        const existingUser = userModel.findUserByEmail(email);
+        const existingUser = await userModel.findUserByEmail(email);
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email already exists.' });
         }
 
         const hashPassword = await bcrypt.hash(password, 10);
-        const newUser = userModel.createUser({ email, password: hashPassword, role });
+        const newUser = await userModel.createUser({ email, password: hashPassword, role });
 
         const token = jwt.sign(
             {id: newUser.id, role: newUser.role},
@@ -116,37 +116,37 @@ exports.registerUser = async (req, res) => {
             token
         });
     } catch (error) {
-        //console.error(error.message);
+        console.error('registerUser catch:', error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
 
-exports.updateProfile = (req, res) => {
+exports.updateProfile = async (req, res) => {
     const id = parseInt(req.params.id);
     const role = req.user.role;
     const updateData = req.body;
     try {
-        const updatedProfile = userModel.updateProfile(id, updateData, role);
+        const updatedProfile = await userModel.updateProfile(id, updateData, role);
         if(!updatedProfile) {
             return res.status(404).json({message: 'User not found.'});
         }
         res.status(200).json({message: 'Profile updated successfully', profile: updatedProfile});
     } catch (error) {
-        //console.error(error.message);
+        console.error('updateProfile controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
 
-exports.deleteUser = (req, res) => {
+exports.deleteUser = async (req, res) => {
     const id = parseInt(req.params.id);
     try {
-        const deletedUser = userModel.deleteUser(id);
+        const deletedUser = await userModel.deleteUser(id);
         if(!deletedUser) {
             return res.status(404).json({message: 'User not found.'});
         }
         res.status(200).json({message: 'User account deleted successfully.'});
     } catch (error) {
-        //console.error(error.message);
+        console.error('deleteUser controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };

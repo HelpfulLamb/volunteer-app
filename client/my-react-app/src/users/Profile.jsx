@@ -17,6 +17,7 @@ export default function UserProfile() {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to retrieve user data.`);
         }
         const data = await response.json();
+        console.log('Profile.jsx:', data);
         setProfile(data);
       } catch (error) {
         setError(error.message);
@@ -66,7 +67,7 @@ export default function UserProfile() {
           <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
           <p><strong>Email:</strong> {profile.email}</p>
           <p><strong>Phone:</strong> {profile.phone}</p>
-          <p><strong>Address:</strong> {profile.address1}, {profile.city}, {profile.state} {profile.zip}</p>
+          <p><strong>Address:</strong> {profile.address1}, {profile.city}, {profile.state} {profile.zipcode}</p>
         </div>
         {user?.role === 'volunteer' && (
             <div>

@@ -36,7 +36,7 @@ exports.getAllEvents = async () => {
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
     FROM EVENTDETAILS e;
     `);
-  console.log(events);
+  //console.log(events);
   return events;
 };
 
@@ -47,7 +47,7 @@ exports.findEventById = async (id) => {
     FROM EVENTDETAILS e
     WHERE e.e_id = ?
     `, [id]);
-  console.log(event[0])
+  //console.log(event[0])
   return event[0];
 };
 
