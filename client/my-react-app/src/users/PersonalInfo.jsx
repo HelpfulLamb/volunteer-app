@@ -14,7 +14,7 @@ export default function PersonalInfoSection() {
     address2: '',
     city: '',
     state: '',
-    zip: '',
+    zipcode: '',
     skills: [],
     preferences: '',
     availability: [''],
@@ -43,6 +43,11 @@ export default function PersonalInfoSection() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleSkillToggle = (skill) => {
+    const updatedSkills = formData.skills.includes(skill.s_id) ? formData.skills.filter(id => id !== skill.s_id) : [...formData.skills, skill.s_id];
+    handleChange('skills', updatedSkills);
+  };
+
   const updateAvailability = (index, newValue) => {
     const updated = [...formData.availability];
     updated[index] = newValue;
@@ -52,12 +57,11 @@ export default function PersonalInfoSection() {
   const validateForm = () => {
     const newErrors = {};
     if(!formData.fullName.trim()) newErrors.fullName = 'Name is required.';
-    if(!formData.email.trim()) newErrors.email = 'Email is required.';
     if(!formData.phone.trim()) newErrors.phone = 'Phone is required.';
     if(!formData.address1.trim()) newErrors.address1 = 'Street address is required.';
     if(!formData.city.trim()) newErrors.city = 'City is required.';
     if(!formData.state.trim()) newErrors.state = 'State is required.';
-    if(!formData.zip.trim()) newErrors.zip = 'Zip is required.';
+    if(!formData.zipcode.trim()) newErrors.zipcode = 'Zipcode is required.';
     if(user.role === 'volunteer'){
         if(formData.skills.length === 0) newErrors.skills = 'At least one skill is required.';
         formData.availability.forEach(date => {
@@ -72,9 +76,9 @@ export default function PersonalInfoSection() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    //console.log('Save button clicked, form submitting...');
+    console.log('Save button clicked, form submitting...');
     if(!validateForm()) {
-      //console.log('Validation failed:', errors);
+      console.log('Validation failed:', errors);
       return;
     };
     const cleanPhone = formData.phone.replace(/\D/g, '');
@@ -139,6 +143,11 @@ export default function PersonalInfoSection() {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch profile.`);
         }
         const data = await response.json();
+        //console.log('raw skills from profile:', data.skills);
+        const matchSkillId = (data.skills || []).map(skillName => {
+          const match = skills.find(s => s.skill === skillName);
+          return match ? match.s_id : null;
+        }).filter(id => id !== null);
         setFormData({
           fullName: data.fullName || '',
           email: data.email || '',
@@ -147,17 +156,20 @@ export default function PersonalInfoSection() {
           address2: data.address2 || '',
           city: data.city || '',
           state: data.state || '',
-          zip: data.zip || '',
-          skills: data.skills || [],
+          zipcode: data.zipcode || '',
+          skills: matchSkillId,
           preferences: data.preferences || '',
           availability: data.availability && data.availability.length > 0 ? data.availability : [''],
         });
+        //console.log('mapped skills to id:', matchSkillId);
       } catch (error) {
         setErrors(error.message);
       }
     };
-    if(user?.id) fetchProfile();
-  }, [user]);
+    if(user?.id && skills.length > 0) fetchProfile();
+  }, [user, skills]);
+  // console.log('formData.skills:', formData.skills);
+  // console.log('skills:', skills);
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -197,7 +209,7 @@ export default function PersonalInfoSection() {
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">State*</label>
-              <select required value={states.state_code} onChange={e => handleChange('state', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+              <select required value={formData.state} onChange={e => handleChange('state', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
                 {states.map((state) => (
                   <option key={state.state_code} value={state.state_code}>{state.state_name}</option>
                 ))}
@@ -206,8 +218,8 @@ export default function PersonalInfoSection() {
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Zip Code*</label>
-              <input type="text" maxLength={5} placeholder="e.g. 12345" pattern="\d{5,9}" required value={formData.zip} onChange={e => handleChange('zip', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
-              {errors.zip && <p className='text-red-600 text-sm'>{errors.zip}</p>}
+              <input type="text" maxLength={5} placeholder="e.g. 12345" pattern="\d{5,9}" required value={formData.zipcode} onChange={e => handleChange('zipcode', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              {errors.zipcode && <p className='text-red-600 text-sm'>{errors.zipcode}</p>}
             </div>
           </div>
         </div>
@@ -218,17 +230,12 @@ export default function PersonalInfoSection() {
           <h2 className="text-xl font-semibold text-gray-700 mb-6 pb-2 border-b border-gray-200">Volunteer Information</h2>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium text-gray-700">Skills (Select multiple)</label>
-              <select multiple required className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm"
-                onChange={e => {
-                  const selected = [...e.target.selectedOptions].map(opt => opt.value);
-                  handleChange('skills', selected);
-                }}>
-                  {skills.map((skill) => (
-                    <option key={skill.s_id} value={skill.s_id}>{skill.skill}</option>
-                  ))}
-              </select>
-              <p className="text-xs text-gray-500">Hold Ctrl/Cmd to select multiple options</p>
+              <label className='text-sm font-medium text-gray-700'>Skills (Click to select multiple)</label>
+              <div className='flex flex-wrap gap-2 mt-1'>
+                {skills.map((skill) => (
+                  <button type='button' key={skill.s_id} onClick={() => handleSkillToggle(skill)} className={`px-3 py-1 rounded-full border transition ${formData.skills.includes(skill.s_id) ? 'bg-blue-600 text-white border-blue-600' : 'bg-gray-100 text-gray-700 border-gray-300'}`}>{skill.skill}</button>
+                ))}
+              </div>
               {errors.skills && <p className='text-red-600 text-sm'>{errors.skills}</p>}
             </div>
             <div>
