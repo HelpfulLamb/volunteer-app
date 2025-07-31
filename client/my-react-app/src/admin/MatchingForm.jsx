@@ -10,8 +10,26 @@ const VolunteerMatchingPage = () => {
   });
   const [volunteers, setVolunteers] = useState([]);
   const [events, setEvents] = useState([]);
+  const [skills, setSkills] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const response = await fetch('/api/items/skills');
+        if(!response.ok){
+          throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch skills.`);
+        }
+        const data = await response.json();
+        console.log(data);
+        setSkills(data);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+    fetchSkills();
+  }, []);
 
   useEffect(() => {
     const fetchDataAndMatch = async () => {
@@ -22,12 +40,16 @@ const VolunteerMatchingPage = () => {
                 throw new Error(`HTTP Error! Status: ${volRes.status}. Failed to fetch volunteers.`);
             }
             const volData = await volRes.json();
+            console.log('volunteer data:', volData);
+
             // fetching all the events
             const eventRes = await fetch('/api/events');
             if(!eventRes.ok) {
                 throw new Error(`HTTP Error! Status: ${eventRes.status}. Failed to fetch events.`);
             }
             const eventData = await eventRes.json();
+            console.log('event data:', eventData);
+
             setVolunteers(volData.volunteers);
             setEvents(eventData.events);
             // pass the data over to be matched
@@ -100,17 +122,9 @@ const VolunteerMatchingPage = () => {
           <div className="flex gap-2">
             <select value={filters.skills[0] || ""} onChange={(e) => setFilters({...filters, skills: e.target.value ? [e.target.value] : []})} className="border border-gray-300 rounded-lg px-3">
               <option value="">All Skills</option>
-              <option value="First Aid">First Aid</option>
-              <option value="Translation">Translation</option>
-              <option value="Cooking">Cooking</option>
-              <option value="Driving">Driving</option>
-              <option value="Construction">Construction</option>
-            </select>
-            <select value={filters.availability} onChange={(e) => setFilters({...filters, availability: e.target.value})} className="border border-gray-300 rounded-lg px-3">
-              <option value="">Any Availability</option>
-              <option value="Weekends">Weekends</option>
-              <option value="Weekday">Weekday</option>
-              <option value="Evenings">Evenings</option>
+              {skills.map(skill => (
+                <option key={skill.s_id} value={skill.skill}>{skill.skill}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -131,10 +145,10 @@ const VolunteerMatchingPage = () => {
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center text-gray-600 text-sm mb-1">
-                    <FiMapPin className="mr-2" /> {`${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zip}`}
+                    <FiMapPin className="mr-2" /> {`${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zipcode}`}
                   </div>
                   <div className="flex items-center text-gray-600 text-sm mb-2">
-                    <FiClock className="mr-2" /> {volunteer.availability.length === 0 ? volunteer.preferences : formatDate(volunteer.availability)}
+                    <FiClock className="mr-2" /> {Array.isArray(volunteer.availability) && volunteer.availability.length > 0 ? formatDate(volunteer.availability) : volunteer.preferences?.trim() ? volunteer.preferences : 'N/A'}
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {volunteer.skills.map(skill => (

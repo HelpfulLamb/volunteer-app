@@ -1,5 +1,4 @@
 const db = require('../db.js');
-const bcrypt = require('bcrypt');
 
 exports.findVolById = async (id) => {
     const sql = `
@@ -17,7 +16,7 @@ exports.findVolById = async (id) => {
 
 exports.findAdminById = async (id) => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode as zip
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode
         FROM USERPROFILE u
         JOIN USERCREDENTIALS c ON u.u_id = c.u_id
         WHERE u.u_id = ? AND u.role = 'admin'
@@ -58,7 +57,7 @@ exports.createUser = async (userData) => {
 
 exports.getAllVolunteers = async () => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode as zip, u.assigned,
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.assigned,
                (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
                (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
         FROM USERPROFILE u
@@ -71,7 +70,7 @@ exports.getAllVolunteers = async () => {
 
 exports.getAllAdmins = async () => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode as zip
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode
         FROM USERPROFILE u
         JOIN USERCREDENTIALS c ON u.u_id = c.u_id
         WHERE u.role = 'admin'

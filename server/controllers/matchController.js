@@ -7,7 +7,7 @@ exports.getMatchingSuggestions = async (req, res) => {
         const suggestions = await getMatchingSuggestions(volunteers, events);
         res.status(200).json({volunteers: suggestions, events});
     } catch (error) {
-        //console.error('Failed to calculate distance. ', error.message);
+        console.error('getMatchingSuggestions catch:', error.message);
         res.status(500).json({message: 'Internal Server Error'});
     }
 };

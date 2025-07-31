@@ -15,11 +15,11 @@ async function getDistance(volunteerAddress, eventAddress) {
   ) {
     return data.rows[0].elements[0].distance.value;
   } else {
-    //console.error('Google Maps API response error:', JSON.stringify(data, null, 2));
+    console.error('Google Maps API response error:', JSON.stringify(data, null, 2));
     throw new Error('Invalid distance data received from API');
   }
 }
 
 module.exports = {
-    getDistance
+  getDistance
 };
