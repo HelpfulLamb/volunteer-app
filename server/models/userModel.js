@@ -1,9 +1,8 @@
 const db = require('../db.js');
-const bcrypt = require('bcrypt');
 
 exports.findVolById = async (id) => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.assigned,
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.status,
                (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
                (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
         FROM USERPROFILE u
@@ -15,9 +14,18 @@ exports.findVolById = async (id) => {
     return rows[0];
 };
 
+exports.getAssignedVol = async (e_id) => {
+  const [assigned] = await db.query(`
+    SELECT u.* FROM ASSIGNMENT a
+    JOIN USERPROFILE u ON u.u_id = a.u_id
+    WHERE a.e_id = ?
+    `, [e_id]);
+  return assigned;
+};
+
 exports.findAdminById = async (id) => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode as zip
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode
         FROM USERPROFILE u
         JOIN USERCREDENTIALS c ON u.u_id = c.u_id
         WHERE u.u_id = ? AND u.role = 'admin'
@@ -49,7 +57,7 @@ exports.createUser = async (userData) => {
         return { id: userId, email, role };
     } catch (error) {
         await connection.rollback();
-        console.error('createUser model catch:', error.message);
+        //console.error('createUser model catch:', error.message);
         throw error;
     } finally {
         connection.release();
@@ -58,7 +66,7 @@ exports.createUser = async (userData) => {
 
 exports.getAllVolunteers = async () => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode as zip, u.assigned,
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.status,
                (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
                (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
         FROM USERPROFILE u
@@ -69,9 +77,22 @@ exports.getAllVolunteers = async () => {
     return rows;
 };
 
+exports.getActiveVol = async () => {
+  const [volunteers] = await db.query(`
+    SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.status,
+    (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
+    (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
+    FROM USERPROFILE u
+    JOIN USERCREDENTIALS c ON u.u_id = c.u_id
+    WHERE u.role = 'volunteer' AND u.status = 'Active';
+    `);
+  //console.log(volunteers);
+  return volunteers;
+};
+
 exports.getAllAdmins = async () => {
     const sql = `
-        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode as zip
+        SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.address1, u.address2, u.city, u.state, u.zipcode
         FROM USERPROFILE u
         JOIN USERCREDENTIALS c ON u.u_id = c.u_id
         WHERE u.role = 'admin'
@@ -133,7 +154,7 @@ exports.updateProfile = async (id, updatedProfile, role) => {
         return rows[0];
     } catch (error) {
         await connection.rollback();
-        console.error('updateProfile model catch:', error.message);
+        //console.error('updateProfile model catch:', error.message);
         throw error;
     } finally {
         connection.release();
@@ -143,4 +164,24 @@ exports.updateProfile = async (id, updatedProfile, role) => {
 exports.deleteUser = async (id) => {
     const [result] = await db.query('DELETE FROM USERPROFILE WHERE u_id = ?', [id]);
     return result.affectedRows > 0;
+};
+
+exports.changeActiveStatus = async (id, change) => {
+  try {
+    const [user] = await db.query(`UPDATE USERPROFILE SET status = ? WHERE u_id = ?`, [change, id]);
+    return user;
+  } catch (error) {
+    console.error('changeActiveStatus model catch:', error.message);
+    throw error;
+  }
+};
+
+exports.assignVolunteer = async (id, eventId) => {
+  try {
+    const [assign] = await db.query(`INSERT INTO ASSIGNMENT (u_id, e_id) VALUES (?, ?)`, [id, eventId]);
+    return assign;
+  } catch (error) {
+    console.error('assignVolunteer model catch:', error.message);
+    throw error;
+  }
 };

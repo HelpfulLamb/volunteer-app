@@ -32,13 +32,16 @@ const NotificationsPage = () => {
   const toggleRead = async (id) => {
     try {
       console.log("Marking notification as read:", id);
-        await fetch(`/api/notifications/mark-notification/${id}/read`, {
-            method: 'PATCH'
-        });
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read:true } : n));
+      const response = await fetch(`/api/notifications/mark-notification/${id}/read`, {
+        method: 'PATCH'
+      });
+      if(!response.ok){
+        throw new Error(`HTTP Error! Status: ${response.status}. Failed to mark as read.`);
+      }
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, read:true } : n));
     } catch (error) {
-        console.error('Failed to mark notification as read.');
-        setErrors(error.message)
+      console.error('Failed to mark notification as read.');
+      setErrors(error.message)
     }
   };
 
@@ -52,8 +55,8 @@ const NotificationsPage = () => {
             const data = await response.json();
             if(data.success){
                 const formatted = data.data.map(n => ({
-                    id: n.id,
-                    subject: n.message,
+                    id: n.n_id,
+                    subject: n.title,
                     message: n.message,
                     timestamp: new Date(n.createdAt).toLocaleString(),
                     read: n.status === 'read'
