@@ -1,6 +1,7 @@
 const { getDistance } = require("./distanceService");
 
 exports.getMatchingSuggestions = async (volunteers, events) => {
+  console.log('match logic:', volunteers);
     const suggestions = [];
     for(const vol of volunteers) {
         const matchedEvents = [];

@@ -35,7 +35,7 @@ const VolunteerMatchingPage = () => {
     const fetchDataAndMatch = async () => {
         try {
             // fetching all the volunteers
-            const volRes = await fetch('/api/users/volunteers');
+            const volRes = await fetch('/api/users/active-volunteers');
             if(!volRes.ok) {
                 throw new Error(`HTTP Error! Status: ${volRes.status}. Failed to fetch volunteers.`);
             }
@@ -43,7 +43,7 @@ const VolunteerMatchingPage = () => {
             console.log('volunteer data:', volData);
 
             // fetching all the events
-            const eventRes = await fetch('/api/events');
+            const eventRes = await fetch('/api/events/active-events');
             if(!eventRes.ok) {
                 throw new Error(`HTTP Error! Status: ${eventRes.status}. Failed to fetch events.`);
             }

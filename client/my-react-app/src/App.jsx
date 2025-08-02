@@ -17,6 +17,7 @@ import VolunteerHistory from './site/VolunteerHistory.jsx';
 import NotificationsPage from './site/NotificationsPage.jsx';
 import Login from './context/Login.jsx';
 import Registration from './context/Registration.jsx';
+import VolunteersList from './admin/VolList.jsx';
 
 
 function AppRoutes() {
@@ -42,6 +43,7 @@ function AppRoutes() {
               <Route path='/matching' element={<VolunteerMatchingPage />} />
               <Route path='/events-list' element={<EventsList />}/>
               <Route path='/edit-event/:id' element={<EditEvent />} />
+              <Route path='/view-volunteers' element={<VolunteersList />} />
               <Route path='/profile' element={<UserProfile />} />
               <Route path='/edit-profile' element={<PersonalInfoSection />} />
               <Route path='/volunteer-history' element={<VolunteerHistory />} />

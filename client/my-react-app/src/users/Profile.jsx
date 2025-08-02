@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { act, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function UserProfile() {
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function UserProfile() {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to retrieve user data.`);
         }
         const data = await response.json();
-        console.log('Profile.jsx:', data);
+        //console.log('Profile.jsx:', data);
         setProfile(data);
       } catch (error) {
         setError(error.message);
@@ -46,19 +46,45 @@ export default function UserProfile() {
     }
   };
 
+  const handleStatusChange = async (id) => {
+    try {
+      let activity = "";
+      if(profile.status === 'Active'){
+        activity = 'Inactive';
+      }
+      if(profile.status === 'Inactive'){
+        activity = 'Active'
+      }
+      const response = await fetch(`/api/users/status-change/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: activity }),
+      })
+      if(!response.ok){
+        throw new Error(`HTTP Error! Status: ${response.status}. Failed to update profile status.`);
+      }
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
   if(loading) return <p>Loading...</p>;
   if(error) return <p>Error: {error}</p>;
   if(!profile) return <p>No Profile Data Found.</p>
+  //console.log(profile.status)
 
   return (
     <div className="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-md">
-      <div className="flex items-center justify-between border-b pb-4 mb-6">
+      <div className="flex items-center border-b pb-4 mb-6 gap-1">
         <div className="flex items-center space-x-4">
           <div>
             <h1 className="text-2xl font-bold">{profile.fullName}</h1>
             <p className="text-gray-600">{profile.email}</p>
           </div>
         </div>
+        <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm ml-auto" onClick={() => handleStatusChange(user.id)}>Change Status</button>
         <button onClick={() => navigate("/edit-profile")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">Edit Profile</button>
         <button onClick={() => handleDelete(user.id)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">Delete Profile</button>
       </div>
@@ -72,7 +98,10 @@ export default function UserProfile() {
         {user?.role === 'volunteer' && (
             <div>
                 <h2 className="text-lg font-semibold mb-2">Volunteer Info</h2>
-                <p><strong>Skills:</strong></p>
+                <div>
+                  <p><strong>Status:</strong> {profile.status}</p>
+                </div>
+                <p className='mt-2'><strong>Skills:</strong></p>
                 <div className="flex flex-wrap gap-2 mt-1">
                     {(profile.skills || []).map(skill => (
                     <span key={skill} className="bg-gray-200 text-sm px-3 py-1 rounded-full">

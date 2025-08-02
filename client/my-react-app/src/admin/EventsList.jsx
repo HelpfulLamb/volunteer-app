@@ -19,6 +19,7 @@ function EventTable({ eventInformation, onDelete }) {
             <th className="border-b p-2">Name</th>
             <th className="border-b p-2">Date</th>
             <th className="border-b p-2">Location</th>
+            <th className="border-b p-2">Status</th>
             <th className="border-b p-2">Actions</th>
           </tr>
         </thead>
@@ -28,6 +29,9 @@ function EventTable({ eventInformation, onDelete }) {
               <td className="p-2">{event.event_name}</td>
               <td className="p-2">{formatDate(event.event_date)}</td>
               <td className="p-2">{event.event_location}</td>
+              <td className="p-2 space-x-2">
+                {event.event_status === 'Active' ? 'Active' : 'Cancelled'}
+              </td>
               <td className="p-2 space-x-2">
                 <button className="text-blue-600 hover:underline" onClick={() => navigate(`/edit-event/${event.id}`)}>Edit</button>
                 <button className="text-red-600 hover:underline" onClick={() => onDelete(event.id)}>Delete</button>

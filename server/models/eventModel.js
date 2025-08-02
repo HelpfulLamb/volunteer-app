@@ -22,7 +22,7 @@ exports.createEvent = async (eventData) => {
       await connection.commit();
       return eventId;
     } catch (error) {
-      console.error('createEvent model catch:', error.message);
+      //console.error('createEvent model catch:', error.message);
       await connection.rollback();
       throw error;
     } finally {
@@ -32,9 +32,20 @@ exports.createEvent = async (eventData) => {
 
 exports.getAllEvents = async () => {
   const [events] = await db.query(`
-    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date,
+    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, CAST(CONCAT(e.event_date, ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(e.event_date, ' ', e.event_end) AS DATETIME) as endTime,
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
-    FROM EVENTDETAILS e;
+    FROM EVENTDETAILS e
+    `);
+  //console.log(events);
+  return events;
+};
+
+exports.getActiveEvents = async () => {
+  const [events] = await db.query(`
+    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status,
+    (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
+    FROM EVENTDETAILS e
+    WHERE e.event_status = 'Active'
     `);
   //console.log(events);
   return events;
@@ -42,7 +53,7 @@ exports.getAllEvents = async () => {
 
 exports.findEventById = async (id) => {
   const [event] = await db.query(`
-    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date,
+    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status,
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
     FROM EVENTDETAILS e
     WHERE e.e_id = ?
@@ -69,7 +80,11 @@ exports.updateEvent = async (id, updatedEvent) => {
     }
     const query = `UPDATE EVENTDETAILS SET ${updates.join(', ')} WHERE e_id = ?`;
     values.push(id);
-    await connection.query(query, values);
+    const [result] = await connection.query(query, values);
+    if(result.affectedRows === 0){
+      await connection.rollback();
+      return null;
+    }
     // updating skills
     if(updatedEvent.event_skills){
       await connection.query(`DELETE FROM EVENT_SKILLS WHERE e_id = ?`, [id]);
@@ -80,10 +95,11 @@ exports.updateEvent = async (id, updatedEvent) => {
       }
     }
     await connection.commit();
-    return {success: true};
+    const [eventRows] = await connection.query(`SELECT * FROM EVENTDETAILS WHERE e_id = ?`, [id]);
+    return eventRows[0];
   } catch (error) {
     await connection.rollback();
-    console.error('updateEvent model catch:', error.message);
+    //console.error('updateEvent model catch:', error.message);
     throw error;
   } finally {
     connection.release();
@@ -93,9 +109,24 @@ exports.updateEvent = async (id, updatedEvent) => {
 exports.deleteEvent = async (id) => {
   try {
     const [result] = await db.query(`DELETE FROM EVENTDETAILS WHERE e_id = ?`, [id]);
+    if(result.affectedRows === 0){
+      return null;
+    }
     return result;
   } catch (error) {
-    console.error('deleteEvent model catch:', error.message);
+    //console.error('deleteEvent model catch:', error.message);
+    throw error;
+  }
+};
+
+exports.changeStatus = async (id, status) => {
+  try {
+    const [result] = await db.query(`UPDATE EVENTDETAILS SET event_status = ? WHERE e_id = ?`,
+      [status, id]
+    );
+    return result;
+  } catch (error) {
+    console.error('changeStatus model catch:', error.message);
     throw error;
   }
 };

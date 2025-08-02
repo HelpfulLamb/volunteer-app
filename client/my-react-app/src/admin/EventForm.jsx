@@ -15,21 +15,6 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
   });
 
   useEffect(() => {
-    if(mode === 'edit' && initialData && Object.keys(initialData).length > 0){
-      setFormData({
-        id: initialData.id || '',
-        event_name: initialData.event_name || '',
-        event_description: initialData.event_description || '',
-        event_location: initialData.event_location || '',
-        event_skills: initialData.event_skills || [],
-        event_urgency: initialData.event_urgency || '',
-        event_date: initialData.event_date?.slice(0,10) || '',
-      })
-    }
-  }, [initialData, mode]);
-
-  // event and volunteer options
-  useEffect(() => {
     const fetchSkills = async () => {
       try {
         const response = await fetch('/api/items/skills');
@@ -47,6 +32,26 @@ export default function EventManagementForm({ initialData = {}, onSubmit, mode =
     };
     fetchSkills();
   }, []);
+
+  useEffect(() => {
+    if(mode === 'edit' && initialData && Object.keys(initialData).length > 0){
+      //console.log("Initial skills in edit:", initialData.event_skills);
+      const mappedSkills = (initialData.event_skills || []).map(skillName => {
+        const match = skills.find(s => s.skill === skillName);
+        return match ? { s_id: match.s_id } : null;
+      }).filter(id => id !== null);
+      setFormData({
+        id: initialData.id || '',
+        event_name: initialData.event_name || '',
+        event_description: initialData.event_description || '',
+        event_location: initialData.event_location || '',
+        event_skills: mappedSkills,
+        event_urgency: initialData.event_urgency || '',
+        event_date: initialData.event_date?.slice(0,10) || ''
+      });
+      //console.log('mapped skills to id:', mappedSkills);
+    }
+  }, [initialData, mode, skills]);
 
   const today = new Date();
   const minDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;

@@ -14,13 +14,13 @@ fname varchar(25),
 lname varchar(25),
 phone varchar(15),
 role enum('volunteer', 'admin') default 'volunteer',
+status enum('Active', 'Inactive') default 'Active',
 preferences text,
 address1 varchar(100),
 address2 varchar(100),
 city varchar(100),
 state char(2),
 zipcode varchar(10),
-assigned boolean default FALSE,
 foreign key (state) references STATES(state_code)
 );
 
@@ -55,7 +55,10 @@ event_name varchar(100),
 event_description text,
 event_location varchar(250),
 event_urgency enum('Low', 'Medium', 'High'),
-event_date datetime
+event_date datetime,
+event_start time,
+event_end time,
+event_status enum('Active', 'Cancelled') default 'Active'
 );
 
 create table EVENT_SKILLS (
@@ -102,8 +105,22 @@ message text,
 status enum('unread', 'read') default 'unread',
 createdAt datetime,
 readAt datetime,
+sender_id int null,
+foreign key (sender_id) references USERPROFILE(u_id)
+on delete set null,
 foreign key (u_id) references USERPROFILE(u_id)
 on delete CASCADE,
 foreign key (e_id) references EVENTDETAILS(e_id)
 on delete CASCADE
+);
+
+create table ASSIGNMENT (
+u_id int,
+e_id int,
+volunteer_status boolean default TRUE,
+primary key (u_id, e_id),
+foreign key (u_id) references USERPROFILE(u_id)
+on delete cascade,
+foreign key (e_id) references EVENTDETAILS(e_id)
+on delete cascade
 );

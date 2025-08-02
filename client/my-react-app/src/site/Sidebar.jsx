@@ -1,7 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaHome, FaPlusCircle, FaUsers, FaBell, FaUser, FaSignOutAlt, FaClipboardList, FaChartBar, FaAngleDoubleLeft, FaBars, FaHistory } from "react-icons/fa";
+import { FaHome, FaPlusCircle, FaUsers, FaBell, FaUser, FaSignOutAlt, FaClipboardList, FaChartBar, FaAngleDoubleLeft, FaBars, FaHistory, FaUserCog } from "react-icons/fa";
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -17,6 +17,7 @@ export default function Sidebar() {
       { label: 'Events List', path: '/events-list', icon: <FaClipboardList /> },
       { label: 'Create Event', path: '/create-event', icon: <FaPlusCircle /> },
       { label: 'Volunteer Matching', path: '/matching', icon: <FaUsers /> },
+      { label: 'Volunteer List', path: '/view-volunteers', icon: <FaUserCog />},
       { label: 'Reports', path: '/report', icon: <FaChartBar /> },
     ]);
   }

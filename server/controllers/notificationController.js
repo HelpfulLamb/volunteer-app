@@ -7,18 +7,18 @@ const getNotificationsByVolunteer = async (req, res) => {
     try {
         const { volunteerId } = req.params;
         const id = parseInt(volunteerId);
-        const volunteer = userModel.findVolById(id);
+        const volunteer = await userModel.findVolById(id);
         if(!volunteer){
           return res.status(404).json({message: 'User not found.'});
         }
-        const notifications = notificationModel.getNotificationsByVolunteerId(parseInt(volunteerId));
+        const notifications = await notificationModel.getNotificationsByVolunteerId(parseInt(volunteerId));
         
         res.status(200).json({
             success: true,
             data: notifications
         });
     } catch (error) {
-        console.error('Error getting notifications:', error);
+        console.error('getNotificationsBNyVolunteer controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to get notifications',
@@ -31,7 +31,7 @@ const getNotificationsByVolunteer = async (req, res) => {
 const getNotificationById = async (req, res) => {
     try {
         const { id } = req.params;
-        const notification = notificationModel.getNotificationById(id);
+        const notification = await notificationModel.getNotificationById(id);
         
         if (!notification) {
             return res.status(404).json({message: 'Notification not found'});
@@ -42,7 +42,7 @@ const getNotificationById = async (req, res) => {
             data: notification
         });
     } catch (error) {
-        console.error('Error getting notification:', error);
+        console.error('getNotificationById controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to get notification',
@@ -55,7 +55,8 @@ const getNotificationById = async (req, res) => {
 const markNotificationAsRead = async (req, res) => {
     try {
         const { id } = req.params;
-        const notification = notificationModel.markNotificationAsRead(id);
+        console.log(id);
+        const notification = await notificationModel.markNotificationAsRead(id);
         
         if (!notification) {
             return res.status(404).json({
@@ -70,7 +71,7 @@ const markNotificationAsRead = async (req, res) => {
             message: 'Notification marked as read'
         });
     } catch (error) {
-        console.error('Error marking notification as read:', error);
+        console.error('markNotificationAsRead controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to mark notification as read',
@@ -83,7 +84,7 @@ const markNotificationAsRead = async (req, res) => {
 const deleteNotification = async (req, res) => {
     try {
         const { id } = req.params;
-        const notification = notificationModel.deleteNotification(id);
+        const notification = await notificationModel.deleteNotification(id);
         
         if (!notification) {
             return res.status(404).json({
@@ -97,7 +98,7 @@ const deleteNotification = async (req, res) => {
             message: 'Notification deleted successfully'
         });
     } catch (error) {
-        console.error('Error deleting notification:', error);
+        console.error('deleteNotification controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to delete notification',
@@ -110,14 +111,14 @@ const deleteNotification = async (req, res) => {
 const getUnreadNotificationCount = async (req, res) => {
     try {
         const { volunteerId } = req.params;
-        const count = notificationModel.getUnreadNotificationCount(parseInt(volunteerId));
+        const count = await notificationModel.getUnreadNotificationCount(parseInt(volunteerId));
         
         res.status(200).json({
             success: true,
             data: { count }
         });
     } catch (error) {
-        console.error('Error getting unread notification count:', error);
+        console.error('getUnreadNotificationCount controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to get unread notification count',
@@ -149,7 +150,7 @@ const sendEventAssignmentNotification = async (req, res) => {
             message: 'Event assignment notification sent successfully'
         });
     } catch (error) {
-        console.error('Error sending event assignment notification:', error);
+        console.error('sendEventAssignmentNotification controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to send event assignment notification',
@@ -181,7 +182,7 @@ const sendEventReminderNotification = async (req, res) => {
             message: 'Event reminder notification sent successfully'
         });
     } catch (error) {
-        console.error('Error sending event reminder notification:', error);
+        console.error('sendEventReminderNotification controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to send event reminder notification',
@@ -216,7 +217,7 @@ const sendBulkNotifications = async (req, res) => {
             message: `Bulk notifications sent successfully to ${notifications.length} volunteers`
         });
     } catch (error) {
-        console.error('Error sending bulk notifications:', error);
+        console.error('sendBulkNotifications controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to send bulk notifications',
@@ -235,7 +236,7 @@ const scheduleEventReminders = async (req, res) => {
             message: 'Event reminders scheduled successfully'
         });
     } catch (error) {
-        console.error('Error scheduling event reminders:', error);
+        console.error('scheduleEventReminders controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to schedule event reminders',

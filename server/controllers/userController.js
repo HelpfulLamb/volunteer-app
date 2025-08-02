@@ -9,9 +9,19 @@ exports.getAllVolunteers = async (req, res) => {
         const volunteers = await userModel.getAllVolunteers();
         res.status(200).json({volunteers});
     } catch (error) {
-        console.error('getAllVolunteers controller catch:', error.message);
+        //console.error('getAllVolunteers controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
+};
+
+exports.getActiveVol = async (req, res) => {
+  try {
+    const volunteers = await userModel.getActiveVol();
+    res.status(200).json({ volunteers });
+  } catch (error) {
+    //console.error('getActiveVol controller catch:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
 };
 
 exports.getAllAdmins = async (req, res) => {
@@ -19,7 +29,7 @@ exports.getAllAdmins = async (req, res) => {
         const admins = await userModel.getAllAdmins();
         res.status(200).json({admins});
     } catch (error) {
-        console.error('getAllAdmins controller catch:', error.message);
+        //console.error('getAllAdmins controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
@@ -33,9 +43,23 @@ exports.findVolunteerById = async (req, res) => {
         }
         res.status(200).json(volFound);
     } catch (error) {
-        console.error('findVolunteerById controller catch:', error.message);
+        //console.error('findVolunteerById controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
+};
+
+exports.getAssignedVol = async (req, res) => {
+  const {u_id, e_id} = req.body;
+  try {
+    const vol = await userModel.getAssignedVol(u_id, e_id);
+    if(!vol){
+      return res.status(404).json({message: 'User not found'});
+    }
+    res.status(200).json(vol);
+  } catch (error) {
+    console.error('getAssignedVol controller catch:', error.message);
+    res.status(500).json({message: "Internal Server Error"});
+  }
 };
 
 exports.findAdminById = async (req, res) => {
@@ -47,13 +71,16 @@ exports.findAdminById = async (req, res) => {
         }
         res.status(200).json(adminFound);
     } catch (error) {
-        console.error('findAdminById controller catch:', error.message);
+        //console.error('findAdminById controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
 
 exports.loginUser = async (req, res) => {
     const { email, password, role } = req.body;
+    if(!email || !password || !role){
+      return res.status(400).json({message: 'Email, password, and role are required.'});
+    }
 
     try {
         const user = await userModel.findUserByEmail(email, role);
@@ -75,7 +102,7 @@ exports.loginUser = async (req, res) => {
         res.json({ token, user: { id: user.u_id, email: user.email, role: user.role } });
 
     } catch (error) {
-        console.error('Login error:', error.message);
+        //console.error('Login error:', error.message);
         res.status(500).send('Server error');
     }
 };
@@ -92,7 +119,7 @@ exports.registerUser = async (req, res) => {
     }
 
     try {
-        const existingUser = await userModel.findUserByEmail(email);
+        const existingUser = await userModel.findUserByEmail(email, role);
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email already exists.' });
         }
@@ -116,7 +143,7 @@ exports.registerUser = async (req, res) => {
             token
         });
     } catch (error) {
-        console.error('registerUser catch:', error.message);
+        //console.error('registerUser catch:', error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
@@ -132,7 +159,7 @@ exports.updateProfile = async (req, res) => {
         }
         res.status(200).json({message: 'Profile updated successfully', profile: updatedProfile});
     } catch (error) {
-        console.error('updateProfile controller catch:', error.message);
+        //console.error('updateProfile controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
@@ -146,7 +173,37 @@ exports.deleteUser = async (req, res) => {
         }
         res.status(200).json({message: 'User account deleted successfully.'});
     } catch (error) {
-        console.error('deleteUser controller catch:', error.message);
+        //console.error('deleteUser controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
+};
+
+exports.changeActiveStatus = async (req, res) => {
+  const id = parseInt(req.params.id);
+  const activeStatus = req.body.status;
+  try {
+    const change = await userModel.changeActiveStatus(id, activeStatus);
+    if(!change){
+      return res.status(404).json({message: 'User not found'});
+    }
+    res.status(200).json({message: 'User status changed successfully.'});
+  } catch (error) {
+    console.error('changeActiveStatus controller catch:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+};
+
+exports.assignVolunteer = async (req, res) => {
+  const id = parseInt(req.params.id);
+  const eventId = req.body.e_id;
+  try {
+    const assign = await userModel.assignVolunteer(id, eventId);
+    if(!assign){
+      return res.status(404).json({message: 'User or event not found'});
+    }
+    res.status(201).json({message: 'Assignment successfully logged.'});
+  } catch (error) {
+    console.error('assignVolunteer controller catch:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
 };
