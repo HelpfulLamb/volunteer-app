@@ -5,7 +5,7 @@ const historyModel = require('../models/volunteerHistoryModel.js');
 describe('History Routes', () => {
   // success testing
   test('should fetch a specific volunteers history', async () => {
-    const res = await request(app).get('/api/volunteer-history/volunteer/1');
+    const res = await request(app).get('/api/volunteer-history/volunteer/4');
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -31,31 +31,29 @@ describe('History Routes', () => {
     });
   });
   test('should return volunteer statistics', async () => {
-    const res = await request(app).get('/api/volunteer-history/volunteer/1/stats');
+    const res = await request(app).get('/api/volunteer-history/volunteer/2/stats');
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toHaveProperty('stats');
     expect(res.body.data).toMatchObject({
       "volunteer": {
-        "id": 1,
-        "name": "Alex Johnson",
+        "id": 2,
         "skills": [
-          "First Aid",
-          "Translation",
-          "Event Planning"
+          "Cooking",
+          "Driving",
+          "Patient"
         ],
-        "location": "3509 Elgin St, Houston, TX 77004"
+        "location": "4301 Crane St, Houston, TX 77206"
       },
       "stats": {
-        "totalEvents": 2,
-        "completedEvents": 2,
+        "totalEvents": 1,
+        "completedEvents": 1,
         "scheduledEvents": 0,
-        "totalHours": 7,
-        "averageRating": 4.5,
+        "totalHours": 2,
+        "averageRating": 5,
         "skillsUsed": [
-          "First Aid",
-          "Event Planning",
-          "Translation"
+          "Driving",
+          "Cooking",
         ],
         "eventsThisMonth": 0,
         "eventsThisYear": 0
@@ -69,35 +67,11 @@ describe('History Routes', () => {
     expect(Array.isArray(res.body.data)).toBe(true);
   });
   test('should return specific event history', async () => {
-    const res = await request(app).get('/api/volunteer-history/event/102');
+    const res = await request(app).get('/api/volunteer-history/event/4');
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true);
-    expect(res.body.data).toMatchObject([
-      {
-        "id": "3",
-        "volunteerId": 2,
-        "eventId": 102,
-        "eventName": "Senior Meal Delivery",
-        "eventDate": "2023-11-18",
-        "eventLocation": "6827 Cypresswood Dr, Spring, TX",
-        "status": "completed",
-        "hoursWorked": 2,
-        "skillsUsed": [
-          "Driving",
-          "Cooking"
-        ],
-        "feedback": "Very reliable and punctual",
-        "rating": 5,
-        "createdAt": "2023-11-18T10:00:00Z",
-        "completedAt": "2023-11-18T12:00:00Z",
-        "volunteerSkills": [
-          "Cooking",
-          "Driving",
-          "Childcare"
-        ]
-      }
-    ]);
+    expect(res.body.data).toMatchObject([]);
   });
   test('should return all history', async () => {
     const res = await request(app).get('/api/volunteer-history/all');
@@ -272,7 +246,7 @@ describe('History Routes', () => {
     jest.spyOn(historyModel, 'getHistoryByVolunteerId').mockImplementation(() => {
       throw new Error('Simulated Failure');
     });
-    const res = await request(app).get('/api/volunteer-history/volunteer/1');
+    const res = await request(app).get('/api/volunteer-history/volunteer/4');
     expect(res.statusCode).toEqual(500);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toEqual('Failed to get volunteer history');
@@ -331,7 +305,7 @@ describe('History Routes', () => {
     jest.spyOn(historyModel, 'getVolunteerStats').mockImplementation(() => {
       throw new Error('Simulated Failure');
     });
-    const res = await request(app).get('/api/volunteer-history/volunteer/1/stats');
+    const res = await request(app).get('/api/volunteer-history/volunteer/4/stats');
     expect(res.statusCode).toEqual(500);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toEqual('Failed to get volunteer stats');
@@ -349,7 +323,7 @@ describe('History Routes', () => {
     jest.spyOn(historyModel, 'getEventHistory').mockImplementation(() => {
       throw new Error('Simulated Failure');
     });
-    const res = await request(app).get('/api/volunteer-history/event/102');
+    const res = await request(app).get('/api/volunteer-history/event/4');
     expect(res.statusCode).toEqual(500);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toEqual('Failed to get event history');

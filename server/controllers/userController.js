@@ -99,7 +99,7 @@ exports.loginUser = async (req, res) => {
             expiresIn: '1h',
         });
 
-        res.json({ token, user: { id: user.u_id, email: user.email, role: user.role } });
+        res.status(200).json({ token, user: { id: user.u_id, email: user.email, role: user.role }, message: 'Login successful.' });
 
     } catch (error) {
         //console.error('Login error:', error.message);
@@ -120,6 +120,7 @@ exports.registerUser = async (req, res) => {
 
     try {
         const existingUser = await userModel.findUserByEmail(email, role);
+        console.log(existingUser);
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email already exists.' });
         }

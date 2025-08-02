@@ -7,7 +7,7 @@ const getVolunteerHistory = async (req, res) => {
     try {
         const { volunteerId } = req.params;
         const id = parseInt(volunteerId);
-        const volunteer = userModel.findVolById(id);
+        const volunteer = await userModel.findVolById(id);
         if(!volunteer){
           return res.status(404).json({message: 'User not found'});
         }
@@ -169,7 +169,7 @@ const getVolunteerStats = async (req, res) => {
         const id = parseInt(volunteerId);
         
         // Get volunteer details
-        const volunteer = userModel.findVolById(id);
+        const volunteer = await userModel.findVolById(id);
         if(!volunteer){
           return res.status(404).json({message: 'User not found'});
         }
@@ -182,7 +182,7 @@ const getVolunteerStats = async (req, res) => {
                     id: volunteer.id,
                     name: volunteer.fullName,
                     skills: volunteer.skills,
-                    location: `${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zip}`
+                    location: `${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zipcode}`
                 } : null,
                 stats
             }
@@ -231,15 +231,15 @@ const getTopVolunteers = async (req, res) => {
 const getEventHistory = async (req, res) => {
     try {
         const { eventId } = req.params;
-        const event = eventModel.findEventById(parseInt(eventId));
+        const event = await eventModel.findEventById(parseInt(eventId));
         if(!event){
           return res.status(404).json({message: 'Event not found'});
         }
         const eventHistory = volunteerHistoryModel.getEventHistory(parseInt(eventId));
         
         // Enrich with volunteer details
-        const enrichedEventHistory = eventHistory.map(entry => {
-            const volunteer = userModel.findVolById(entry.volunteerId);
+        const enrichedEventHistory = eventHistory.map(async entry => {
+            const volunteer = await userModel.findVolById(entry.volunteerId);
             return {
                 ...entry,
                 volunteerName: volunteer ? volunteer.name : 'Unknown',

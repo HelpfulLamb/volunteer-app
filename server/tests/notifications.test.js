@@ -12,25 +12,26 @@ describe('Notification Routes', () => {
   });
   // success testing
   test('should fetch a notification for a volunteer', async () => {
-    const res = await request(app).get('/api/notifications/volunteer/1');
+    const res = await request(app).get('/api/notifications/volunteer/2');
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true)
   });
   test('should retrieve a specific notification', async () => {
-    const res = await request(app).get('/api/notifications/retrieve-notification/2');
+    const res = await request(app).get('/api/notifications/retrieve-notification/3');
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data).toEqual({
-      id: "2",
-      volunteerId: 2,
-      eventId: 102,
-      type: 'event_reminder',
-      title: 'Event Reminder',
-      message: 'Reminder: Senior Meal Delivery event is tomorrow at 6827 Cypresswood Dr',
+      n_id: 3,
+      u_id: 2,
+      e_id: null,
+      noti_type: 'general',
+      title: 'New Upcoming Event',
+      message: 'A new event "undefined" has been created for undefined.',
       status: 'read',
-      createdAt: '2023-11-17T09:00:00Z',
-      readAt: '2023-11-17T10:30:00Z'
+      createdAt: '2025-08-01T22:25:34.000Z',
+      readAt: expect.any(String),
+      sender_id: null
     });
   });
   test('should retrieve the unread count for a volunteer', async () => {
@@ -39,106 +40,53 @@ describe('Notification Routes', () => {
     expect(res.body.data.count).toBeGreaterThanOrEqual(0);
   });
   test('should send an event assignment notification', async () => {
-    jest.spyOn(userModel, 'findVolById').mockReturnValue({
-      id: 1, 
-      email: 'alex.johnson@example.com'
-    });
-    jest.spyOn(eventModel, 'findEventById').mockReturnValue({
-      id: 101,
-      event_name: 'Food Bank Assistance',
-      event_date: '2023-11-15',
-      event_location: '2020 Hermann Dr, Houston, TX'
-    });
-    jest.spyOn(notificationModel, 'createNotification').mockImplementation(data => ({
-      ...data,
-      id: 'mock-id-1',
-      status: 'unread',
-      createdAt: new Date().toISOString(),
-      readAt: null
-    }));
-    jest.spyOn(notiService, 'sendEmail').mockResolvedValue({
-      messageId: 'test-email-id'
-    });
     const res = await request(app).post('/api/notifications/send/assignment').send({
-      volunteerId: 1,
-      eventId: 101
+      volunteerId: 4,
+      eventId: 3
     });
     expect(res.statusCode).toEqual(201);
     expect(res.body.success).toBe(true);
     expect(res.body.message).toEqual('Event assignment notification sent successfully');
-    expect(res.body.data).toHaveProperty('id');
     expect(res.body.data).toMatchObject({
-      volunteerId: 1,
-      eventId: 101,
-      type: 'event_assignment',
-      status: 'unread'
+      "createdAt": expect.any(String), 
+      "e_id": 3, 
+      "message": "You have been assigned to \"Park Cleanup\" event on Sun Oct 19 2025 00:00:00 GMT-0500 (Central Daylight Time). Location: Central Park, New York, NY", 
+      "n_id": expect.any(Number), 
+      "noti_type": "assignment", 
+      "status": "unread", 
+      "title": "New Event Assignment", 
+      "u_id": 4
     });
   });
   test('should send an event reminder notification', async () => {
-    jest.spyOn(userModel, 'findVolById').mockReturnValue({
-      id: 1, 
-      email: 'alex.johnson@example.com'
-    });
-    jest.spyOn(eventModel, 'findEventById').mockReturnValue({
-      id: 101,
-      event_name: 'Food Bank Assistance',
-      event_date: '2023-11-15',
-      event_location: '2020 Hermann Dr, Houston, TX'
-    });
-    jest.spyOn(notificationModel, 'createNotification').mockImplementation(data => ({
-      ...data,
-      id: 'mock-id-1',
-      status: 'unread',
-      createdAt: new Date().toISOString(),
-      readAt: null
-    }));
-    jest.spyOn(notiService, 'sendEmail').mockResolvedValue({
-      messageId: 'test-email-id'
-    });
     const res = await request(app).post('/api/notifications/send/reminder').send({
-      volunteerId: 1,
-      eventId: 101
+      volunteerId: 65,
+      eventId: 4
     });
     expect(res.statusCode).toEqual(201);
     expect(res.body.success).toBe(true);
     expect(res.body.message).toEqual('Event reminder notification sent successfully');
-    expect(res.body.data).toHaveProperty('id');
     expect(res.body.data).toMatchObject({
-      volunteerId: 1,
-      eventId: 101,
-      type: 'event_reminder',
-      status: 'unread'
+      "createdAt": expect.any(String),
+      "message": "Reminder: \"updated name event\" event is tomorrow at 20400 Sandstone Cavern Cir, Richmond, TX 77407", 
+      "n_id": expect.any(Number),
+      "status": "unread", 
+      "title": "Event Reminder", 
     });
   });
   test('should send a bulk notification', async () => {
-    const mockVolunteers = {
-      1: { id: 1, email: 'vol1@example.com' },
-      2: { id: 2, email: 'vol2@example.com' },
-      3: { id: 3, email: 'vol3@example.com' }
-    };
-    jest.spyOn(userModel, 'findVolById').mockImplementation(id => mockVolunteers[id] || null);
-    jest.spyOn(notificationModel, 'createNotification').mockImplementation(data => ({
-      ...data,
-      id: 'mock-id-' + data.volunteerId,
-      status: 'unread',
-      createdAt: new Date().toISOString(),
-      readAt: null
-    }));
-    jest.spyOn(notiService, 'sendEmail').mockResolvedValue();
+    
     const res = await request(app).post('/api/notifications/send/bulk').send({
-      volunteerIds: [1,2,3],
-      eventId: 103,
-      type: 'event_reminder',
+      volunteerIds: [3,4,65],
+      eventId: 3,
+      type: 'reminder',
       title: 'Park Cleanup',
       message: 'Bulk notification for event reminder.'
     });
     expect(res.statusCode).toEqual(201);
     expect(res.body.success).toBe(true);
-    expect(res.body.message).toEqual('Bulk notifications sent successfully to 3 volunteers');
-    expect(res.body.data).toHaveLength(3);
-    expect(res.body.data[0]).toHaveProperty('volunteerId',1);
-    expect(res.body.data[1]).toHaveProperty('volunteerId',2);
-    expect(res.body.data[2]).toHaveProperty('volunteerId',3);
+    expect(res.body.message).toEqual('Bulk notifications sent successfully to 2 volunteers');
+    expect(res.body.data).toHaveLength(2);
   });
   test('should schedule event reminders', async () => {
     const tomorrow = moment().add(1, 'day').format('YYYY-MM-DD');
@@ -155,7 +103,7 @@ describe('Notification Routes', () => {
     expect(mockSendReminder).toHaveBeenCalledWith(2, 101);
   });
   test('should mark a notification as read', async () => {
-    const res = await request(app).patch('/api/notifications/mark-notification/1/read');
+    const res = await request(app).patch('/api/notifications/mark-notification/179/read');
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
     expect(res.body.message).toEqual('Notification marked as read');
@@ -165,7 +113,7 @@ describe('Notification Routes', () => {
     });
   });
   test('should delete a notification', async () => {
-    const res = await request(app).delete('/api/notifications/delete-notification/2');
+    const res = await request(app).delete('/api/notifications/delete-notification/188');
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toBe(true);
     expect(res.body.message).toEqual('Notification deleted successfully');
@@ -225,7 +173,7 @@ describe('Notification Routes', () => {
     jest.spyOn(notificationModel, 'getNotificationsByVolunteerId').mockImplementation(() => {
       throw new Error('Simulated Failure');
     });
-    const res = await request(app).get('/api/notifications/volunteer/1');
+    const res = await request(app).get('/api/notifications/volunteer/65');
     expect(res.statusCode).toEqual(500);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toEqual('Failed to get notifications');

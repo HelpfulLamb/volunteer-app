@@ -8,16 +8,16 @@ describe('Event Routes', () => {
         const res = await request(app).post('/api/events/create-event').send({
             event_name: 'Beach Cleanup',
             event_description: 'Clean up the beach',
-            event_location: 'Miami',
-            event_skills: ['Friendly'],
+            event_location: '601 Biscayne Blvd, Miami, FL 33132',
+            event_skills: [{s_id: 13}, {s_id: 1}],
             event_urgency: 'Low',
-            event_date: '2025-08-01'
+            event_date: '2025-08-05'
         });
         expect(res.statusCode).toEqual(201);
         expect(res.body.message).toEqual('New event created successfully.');
     });
     test('should update one event', async () => {
-        const res = await request(app).patch('/api/events/update-event/104').send({
+        const res = await request(app).patch('/api/events/update-event/4').send({
             event_name: 'updated name event',
             event_date: '2025-10-19'
         });
@@ -30,23 +30,24 @@ describe('Event Routes', () => {
         expect(Array.isArray(res.body.events)).toBe(true);
     });
     test('should retrieve specific event', async () => {
-        const res = await request(app).get('/api/events/102/find');
+        const res = await request(app).get('/api/events/2/find');
         expect(res.statusCode).toEqual(200);
         expect(res.body).toEqual({
-            "id": 102,
+            "id": 2,
             "event_name": "Senior Meal Delivery",
-            "event_description": "Help distribute food to the elderly in need.",
+            "event_description": "Help deliver food to the elderly in need.",
             "event_location": "6827 Cypresswood Dr, Spring, TX 77379",
-            "event_skills": [
-                "Driving",
-                "Cooking"
-            ],
+            "event_status": 'Cancelled',
             "event_urgency": "Medium",
-            "event_date": "2023-11-18"
+            "event_date": "2025-11-08T06:00:00.000Z",
+            "event_skills": [
+                "Cooking",
+                "Driving"
+            ]
         });
     });
     test('should successfully delete an event', async () => {
-        const res = await request(app).delete('/api/events/delete-event/101');
+        const res = await request(app).delete('/api/events/delete-event/61');
         expect(res.statusCode).toEqual(200);
         expect(res.body.message).toEqual('Event deleted successfully.');
     });

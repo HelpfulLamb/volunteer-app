@@ -34,7 +34,7 @@ class NotificationService {
                 noti_type: 'assignment',
                 title,
                 message,
-                sender_id: senderId
+                // sender_id: senderId
             });
 
             // Send email notification
