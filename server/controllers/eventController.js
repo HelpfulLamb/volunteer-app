@@ -3,19 +3,23 @@ const NotificationService = require('../services/notificationService.js');
 const userModel = require('../models/userModel.js');
 
 exports.createEvent = async (req, res) => {
-    const {event_name, event_description, event_location, event_skills, event_urgency, event_date} = req.body;
-    if(!event_name || !event_description || !event_location || !event_skills || !event_urgency || !event_date) {
+    const {event_name, event_description, event_location, event_skills, event_urgency, event_date, event_start, event_end} = req.body;
+    const unsafeCharacters = /[`@{}[\];<>:"\\]/;
+    if(unsafeCharacters.test(event_name) || unsafeCharacters.test(event_description) || unsafeCharacters.test(event_location)){
+      return res.status(400).json({message: 'Invalid characters found.'});
+    }
+    if(!event_name || !event_description || !event_location || !event_skills || !event_urgency || !event_date || !event_start || !event_end) {
         return res.status(400).json({message: 'All fields are required! Something is missing.'});
     }
     try {
-        const event = await eventModel.createEvent({event_name, event_description, event_location, event_skills, event_urgency, event_date});
+        const event = await eventModel.createEvent({event_name, event_description, event_location, event_skills, event_urgency, event_date, event_start, event_end});
         const allVol = await userModel.getAllVolunteers();
         await NotificationService.sendBulkNotifications(
           allVol.map(v => v.id),
           event,
           'general',
           'New Upcoming Event',
-          `A new event "${event_name}" has been created for ${event_date}.`
+          `A new event "${event_name}" has been created for ${event_date} from ${event_start} to ${event_end}.`
         );
         res.status(201).json({event, message: 'New event created successfully.'});
     } catch (error) {
@@ -60,15 +64,17 @@ exports.findEventById = async (req, res) => {
 
 exports.updateEvent = async (req, res) => {
   const id = parseInt(req.params.id);
+  //console.log('update:', id);
   const updateData = req.body;
   try {
     const updatedEvent = await eventModel.updateEvent(id, updateData);
-    console.log(updatedEvent);
+    //console.log(updatedEvent);
     if(!updatedEvent){
       return res.status(404).json({message: "Event not Found."});
     }
     const assignedVol = await userModel.getAssignedVol(id);
-    if(assignedVol.length > 0){
+    //console.log('assigned:', assignedVol);
+    if(assignedVol && assignedVol.length > 0){
       await NotificationService.sendBulkNotifications(
         assignedVol.map(v => v.u_id),
         id,
@@ -79,7 +85,7 @@ exports.updateEvent = async (req, res) => {
     }
     res.status(200).json({message: "Event updated successfully.", event: updatedEvent});
   } catch (error) {
-    //console.error('updateEvent controller catch:', error.message);
+    console.error('updateEvent controller catch:', error.message);
     res.status(500).json({message: "Internal Server Error"});
   }
 };

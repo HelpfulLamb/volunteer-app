@@ -8,11 +8,26 @@ const Registration = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState('volunteer'); // Added role state, default to volunteer
   const [message, setMessage] = useState({ error: '', success: '' });
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const validateForm = () => {
+    const newErrors = {};
+    const allowedEmailCharacters = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if(!allowedEmailCharacters.test(email)){
+      newErrors.email = 'Invalid email format or characters.';
+    }
+    if(!email.trim()) newErrors.email = 'Email is required.';
+    if(!password.trim()) newErrors.password = 'Password is required.';
+    if(!confirmPassword.trim()) newErrors.confirmPassword = 'Password confirmation is required.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+    if(!validateForm()) return;
     setMessage({ error: '', success: '' }); // Clear previous messages
 
     if (!email || !password || !confirmPassword || !role) {
@@ -53,7 +68,7 @@ const Registration = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
       <div className="bg-white shadow-lg rounded-2xl w-full max-w-md p-8">
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Register New Account</h1>
-        <form onSubmit={handleRegister} className="flex flex-col gap-4">
+        <form onSubmit={handleRegister} className="flex flex-col gap-4" noValidate>
           <div>
             <input
               type="email" // Changed to type email
@@ -61,9 +76,9 @@ const Registration = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
-              required
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {errors.email && <p className="text-red-600 text-sm">{errors.email}</p>}
           </div>
           <div>
             <input
@@ -72,9 +87,9 @@ const Registration = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              required
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {errors.password && <p className="text-red-600 text-sm">{errors.password}</p>}
           </div>
           <div>
             <input
@@ -83,9 +98,9 @@ const Registration = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm Password"
-              required
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+            {errors.confirmPassword && <p className="text-red-600 text-sm">{errors.confirmPassword}</p>}
           </div>
           {/* Role Selection */}
           <div>

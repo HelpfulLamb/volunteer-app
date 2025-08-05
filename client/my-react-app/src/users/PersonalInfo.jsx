@@ -56,6 +56,24 @@ export default function PersonalInfoSection() {
 
   const validateForm = () => {
     const newErrors = {};
+    const lettersAndSpace = /^[A-Za-z\s]+$/;
+    const lettersSpacesNumbers = /^[A-Za-z0-9\s]+$/;
+    const zipNumbers = /^\d{5}$/;
+    if(!lettersAndSpace.test(formData.fullName)){
+      newErrors.fullName = 'Name contains invalid characters.';
+    }
+    if(!lettersSpacesNumbers.test(formData.address1)){
+      newErrors.address1 = 'Address1 contains invalid characters.'
+    }
+    if(formData.address2.trim() && !lettersSpacesNumbers.test(formData.address2)){
+      newErrors.address2 = 'Address2 contains invalid characters.';
+    }
+    if(!lettersAndSpace.test(formData.city)){
+      newErrors.city = 'City contains invalid characters.';
+    }
+    if(!zipNumbers.test(formData.zipcode)){
+      newErrors.zipcode = 'Zipcode contains invalid characters.';
+    }
     if(!formData.fullName.trim()) newErrors.fullName = 'Name is required.';
     if(!formData.phone.trim()) newErrors.phone = 'Phone is required.';
     if(!formData.address1.trim()) newErrors.address1 = 'Street address is required.';
@@ -63,12 +81,12 @@ export default function PersonalInfoSection() {
     if(!formData.state.trim()) newErrors.state = 'State is required.';
     if(!formData.zipcode.trim()) newErrors.zipcode = 'Zipcode is required.';
     if(user.role === 'volunteer'){
-        if(formData.skills.length === 0) newErrors.skills = 'At least one skill is required.';
-        formData.availability.forEach(date => {
-            if(new Date(date) < today.setHours(0,0,0,0)) {
-                newErrors.availability = 'All availability dates must be upcoming.';
-            }
-        });
+      if(formData.skills.length === 0) newErrors.skills = 'At least one skill is required.';
+      formData.availability.forEach(date => {
+        if(new Date(date) < today.setHours(0,0,0,0)) {
+          newErrors.availability = 'All availability dates must be upcoming.';
+        }
+      });
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length == 0;
@@ -172,44 +190,46 @@ export default function PersonalInfoSection() {
   // console.log('skills:', skills);
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md" noValidate>
       <h1 className="text-3xl font-bold text-gray-800 mb-8">My Profile</h1>
       {/* Personal User Info For All */}
       <section className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-700 mb-6 pb-2 border-b border-gray-200">Personal Information</h2>
+        <h2 className="text-xl font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-200">Personal Information</h2>
+        <p className='text-right text-xs text-red-400'>* Required</p>
         <div className="space-y-3">
           <div>
             <label className="text-sm font-medium text-gray-700">Full Name*</label>
-            <input type="text" maxLength={50} required value={formData.fullName} onChange={e => handleChange('fullName', e.target.value)} 
+            <input type="text" maxLength={50} value={formData.fullName} onChange={e => handleChange('fullName', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.fullName && <p className='text-red-600 text-sm'>{errors.fullName}</p>}
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Phone*</label>
-            <input type="tel" maxLength={16} required value={formData.phone} onChange={e => handleChange('phone', e.target.value)} 
+            <input type="tel" maxLength={16} value={formData.phone} onChange={e => handleChange('phone', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.phone && <p className='text-red-600 text-sm'>{errors.phone}</p>}
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700 ">Address Line 1*</label>
-            <input type="text" maxLength={100} required value={formData.address1} onChange={e => handleChange('address1', e.target.value)} 
+            <input type="text" maxLength={100} value={formData.address1} onChange={e => handleChange('address1', e.target.value)} 
               className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.address1 && <p className='text-red-600 text-sm'>{errors.address1}</p>}
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Address Line 2 (Optional)</label>
-            <input type="text" maxLength={100} value={formData.address2} onChange={e => handleChange('address2', e.target.value)} 
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+            <input type="text" maxLength={100} value={formData.address2} onChange={e => handleChange('address2', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+            {errors.address2 && <p className='text-red-600 text-sm'>{errors.address2}</p>}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-700">City*</label>
-              <input type="text" maxLength={100} required value={formData.city} onChange={e => handleChange('city', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              <input type="text" maxLength={100} value={formData.city} onChange={e => handleChange('city', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.city && <p className='text-red-600 text-sm'>{errors.city}</p>}
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">State*</label>
-              <select required value={formData.state} onChange={e => handleChange('state', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+              <select value={formData.state} onChange={e => handleChange('state', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm">
+                <option value="">---</option>
                 {states.map((state) => (
                   <option key={state.state_code} value={state.state_code}>{state.state_name}</option>
                 ))}
@@ -218,7 +238,7 @@ export default function PersonalInfoSection() {
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Zip Code*</label>
-              <input type="text" maxLength={5} placeholder="e.g. 12345" pattern="\d{5,9}" required value={formData.zipcode} onChange={e => handleChange('zipcode', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
+              <input type="text" maxLength={5} placeholder="e.g. 12345" pattern="\d{5,9}" value={formData.zipcode} onChange={e => handleChange('zipcode', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
               {errors.zipcode && <p className='text-red-600 text-sm'>{errors.zipcode}</p>}
             </div>
           </div>
@@ -239,12 +259,12 @@ export default function PersonalInfoSection() {
               {errors.skills && <p className='text-red-600 text-sm'>{errors.skills}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Preferences</label>
+              <label className="text-sm font-medium text-gray-700">Preferences (Optional)</label>
               <textarea rows="3" value={formData.preferences} onChange={e => handleChange('preferences', e.target.value)} placeholder="Tell us about your volunteering preferences..." 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm" />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700">Availability</label>
+              <label className="text-sm font-medium text-gray-700">Availability (Optional)</label>
               <div className="space-y-2">
                 {formData.availability.map((date, index) => (
                   <div key={index} className="flex items-center space-x-2">

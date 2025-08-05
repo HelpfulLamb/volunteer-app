@@ -101,8 +101,8 @@ const NotificationsPage = () => {
     }
   };
 
-  if(loading) return <div>Loading...</div>;
-  if(errors) return <div>Error: {errors}</div>
+  if(loading) return <p className='text-xl text-indigo-500 text-center mt-4 animate-pulse'>Loading...</p>
+  if(errors) return <div>Error: {errors}</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6">

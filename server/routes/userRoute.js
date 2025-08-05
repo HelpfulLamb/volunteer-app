@@ -9,12 +9,15 @@ userRouter.get('/volunteers/:id/find', userController.findVolunteerById);
 userRouter.get('/admins/:id/find', userController.findAdminById);
 userRouter.get('/active-volunteers', userController.getActiveVol);
 userRouter.get('/assigned-volunteers', userController.getAssignedVol);
+userRouter.get('/volunteers/assigned-events/:id', userController.getAssignments);
 userRouter.post('/login', userController.loginUser);
 userRouter.post('/register', userController.registerUser);
 userRouter.post('/assignment/:id', userController.assignVolunteer);
+userRouter.post('/volunteers/suggested-events', userController.getSuggestedEvents);
 userRouter.patch('/status-change/:id', userController.changeActiveStatus);
 userRouter.patch('/update-profile/:id', authenticate, userController.updateProfile);
 userRouter.delete('/delete-account/:id', userController.deleteUser);
+userRouter.delete('/unassign/:id', userController.unassignVolunteer);
 
 module.exports = {
     userRouter

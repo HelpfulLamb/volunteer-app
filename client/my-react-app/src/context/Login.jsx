@@ -9,10 +9,24 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState({ error: '', success: '' });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+
+  const validateForm = () => {
+    const newErrors = {};
+    const allowedEmailCharacters = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if(!allowedEmailCharacters.test(email)){
+      newErrors.email = 'Invalid email format or characters.';
+    }
+    if(!email.trim()) newErrors.email = 'Email is required.';
+    if(!password.trim()) newErrors.password = 'Password is required.';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if(!validateForm()) return;
     setMessage({ error: '', success: '' }); // Clear previous messages
 
     if (!email || !password || !role) {
@@ -35,9 +49,9 @@ const Login = () => {
         setMessage({ success: data.message, error: '' });
         login(data.user, data.token); // Store user data and token in AuthContext
         if (data.user.role === 'admin') {
-          navigate('/create-event');
+          navigate('/home');
         } else if (data.user.role === 'volunteer') {
-          navigate('/profile');
+          navigate('/home');
         }
       } else {
         setMessage({ error: data.message || 'Login failed.', success: '' });
@@ -52,7 +66,7 @@ const Login = () => {
   useEffect(() => {
     if(localStorage.getItem('user')) {
         const user = JSON.parse(localStorage.getItem('user'));
-        navigate(user.role === 'admin' ? '/create-event' : '/profile');
+        navigate(user.role === 'admin' ? '/home' : '/home');
     }
   }, []);
 
@@ -67,14 +81,14 @@ const Login = () => {
           </div>
         ) : (
           <>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
               <div>
-                <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                {errors.email && <p className='text-red-600 text-sm'>{errors.email}</p>}
               </div>
               <div>
-                <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required
-                  className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                {errors.password && <p className="text-red-600 text-sm">{errors.password}</p>}
               </div>
               <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 rounded-xl font-semibold hover:bg-blue-700 transition">{loading ? 'Logging in...' : 'Login'}</button>
             </form>
