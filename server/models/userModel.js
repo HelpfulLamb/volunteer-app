@@ -20,6 +20,12 @@ exports.getAssignedVol = async (e_id) => {
     JOIN USERPROFILE u ON u.u_id = a.u_id
     WHERE a.e_id = ?
     `, [e_id]);
+  return assigned[0];
+};
+
+exports.getAssignments = async (u_id) => {
+  const [assigned] = await db.query(`
+    SELECT e_id FROM ASSIGNMENT WHERE u_id = ?`, [u_id]);
   return assigned;
 };
 
@@ -154,7 +160,7 @@ exports.updateProfile = async (id, updatedProfile, role) => {
         return rows[0];
     } catch (error) {
         await connection.rollback();
-        //console.error('updateProfile model catch:', error.message);
+        console.error('updateProfile model catch:', error.message);
         throw error;
     } finally {
         connection.release();
@@ -182,6 +188,16 @@ exports.assignVolunteer = async (id, eventId) => {
     return assign;
   } catch (error) {
     console.error('assignVolunteer model catch:', error.message);
+    throw error;
+  }
+};
+
+exports.unassignVolunteer = async (id, eventId) => {
+  try {
+    const [result] = await db.query(`DELETE FROM ASSIGNMENT WHERE u_id = ? AND e_id = ?`, [id, eventId]);
+    return result.affectedRows > 0;
+  } catch (error) {
+    console.error('unassignVolunteer model catch:', error.message);
     throw error;
   }
 };

@@ -33,7 +33,7 @@ function EventTable({ eventInformation, onDelete }) {
                 {event.event_status === 'Active' ? 'Active' : 'Cancelled'}
               </td>
               <td className="p-2 space-x-2">
-                <button className="text-blue-600 hover:underline" onClick={() => navigate(`/edit-event/${event.id}`)}>Edit</button>
+                <button className="text-blue-600 hover:underline" onClick={() => navigate(`/edit-event/${event.id}`, {state: event})}>Edit</button>
                 <button className="text-red-600 hover:underline" onClick={() => onDelete(event.id)}>Delete</button>
               </td>
             </tr>
@@ -59,7 +59,7 @@ export default function EventsList() {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch events.`);
         }
         const data = await response.json();
-        //console.log(data.events);
+        console.log(data.events);
         setEvents(data.events);
       } catch (error) {
         setError(error.message);
@@ -89,7 +89,7 @@ export default function EventsList() {
     }
   };
 
-  if(loading) return <div>Loading...</div>;
+  if(loading) return <p className='text-xl text-indigo-500 text-center mt-4 animate-pulse'>Loading...</p>
   if(error) return <div>Error: {error}</div>;
 
   return (

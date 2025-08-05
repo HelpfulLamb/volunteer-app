@@ -76,20 +76,39 @@ const VolunteerMatchingPage = () => {
     fetchDataAndMatch();
   }, []);
 
+  const handleAssignment = async (volId, eventId, isAssigned) => {
+    try {
+      const response = await fetch(`/api/users/assignment/${volId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ e_id: eventId }),
+      });
+      if(!response.ok){
+        throw new Error(`HTTP Error! Status: ${response.status}. Failed to assign volunteer.`);
+      }
+      setVolunteers(prevVolunteers => prevVolunteers.map(vol => {
+        if(vol.id === volId){
+          return {
+            ...vol,
+            matchedEvents: isAssigned
+            ? vol.matchedEvents.filter(match => match.id !== eventId)
+            : [...vol.matchedEvents, { id: eventId }],
+          };
+        }
+        return vol;
+      }))
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
   // Toggle volunteer assignment
   const toggleAssignment = (volunteerId, eventId) => {
-    setVolunteers(volunteers.map(volunteer => {
-      if (volunteer.id === volunteerId) {
-        const isAssigned = volunteer.matchedEvents.some(match => match.id === eventId);
-        return {
-          ...volunteer,
-          matchedEvents: isAssigned 
-            ? volunteer.matchedEvents.filter(match => match.id !== eventId)
-            : [...volunteer.matchedEvents, { id:eventId }]
-        };
-      }
-      return volunteer;
-    }));
+    const vol = volunteers.find(v => v.id === volunteerId);
+    const isAssigned = vol?.matchedEvents.some(match => match.id === eventId);
+    handleAssignment(volunteerId, eventId, isAssigned);
   };
 
   // Filter volunteers based on search and filters
@@ -106,7 +125,7 @@ const VolunteerMatchingPage = () => {
     return date.toLocaleDateString();
   };
 
-  if(loading) return <p>Loading...</p>;
+  if(loading) return <p className='text-xl text-indigo-500 text-center mt-4 animate-pulse'>Loading...</p>
   if(error) return <p>Error: {error}</p>;
 
   return (
@@ -186,7 +205,7 @@ const VolunteerMatchingPage = () => {
                     <FiCalendar className="mr-2" /> {formatDate(event.event_date)}
                   </div>
                   <div className="text-sm mb-2">
-                    <span className="font-medium">Volunteers Needed:</span> {event.volunteersNeeded}
+                    <span className="font-medium">Skills Needed:</span> {event.volunteersNeeded}
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {event.event_skills.map(skill => (
@@ -224,7 +243,7 @@ const VolunteerMatchingPage = () => {
                   </div>
                   <button onClick={() => toggleAssignment(match.volunteer.id, match.event.id)} title={match.volunteer.assigned ? 'Unassign' : 'Assign'}
                     className={`p-2 rounded-full ${match.volunteer.assigned ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'} hover:bg-green-200 transition`}>
-                    {match.volunteer.assigned ? <FiCheck /> : <FiX />}
+                    <FiCheck />
                   </button>
                 </div>
                 <div className="mt-2 flex justify-between items-center">
@@ -235,14 +254,14 @@ const VolunteerMatchingPage = () => {
                       <span key={skill} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">{skill} ✓</span>
                     ))}
                   </div>
-                  <span className="text-xs text-gray-500">{Math.floor(Math.random() * 90) + 10}% match</span>
+                  <span className="text-xs text-gray-500">{Math.round(((match.volunteer.skills.filter(skill => match.event.event_skills.includes(skill))).length / match.event.event_skills.length) * 100)}% match</span>
                 </div>
               </div>
             ))}
           </div>
-          <div className="p-4 border-t border-gray-200">
+          {/* <div className="p-4 border-t border-gray-200">
             <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">Confirm All Assignments</button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

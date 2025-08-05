@@ -8,7 +8,8 @@ const getNotificationsByVolunteer = async (req, res) => {
         const { volunteerId } = req.params;
         const id = parseInt(volunteerId);
         const volunteer = await userModel.findVolById(id);
-        if(!volunteer){
+        const admin = await userModel.findAdminById(id);
+        if(!volunteer && !admin){
           return res.status(404).json({message: 'User not found.'});
         }
         const notifications = await notificationModel.getNotificationsByVolunteerId(parseInt(volunteerId));
@@ -18,7 +19,7 @@ const getNotificationsByVolunteer = async (req, res) => {
             data: notifications
         });
     } catch (error) {
-        console.error('getNotificationsBNyVolunteer controller catch:', error.message);
+        console.error('getNotificationsByVolunteer controller catch:', error.message);
         res.status(500).json({
             success: false,
             message: 'Failed to get notifications',
@@ -55,7 +56,7 @@ const getNotificationById = async (req, res) => {
 const markNotificationAsRead = async (req, res) => {
     try {
         const { id } = req.params;
-        console.log(id);
+        //console.log(id);
         const notification = await notificationModel.markNotificationAsRead(id);
         
         if (!notification) {

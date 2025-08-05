@@ -17,7 +17,7 @@ export default function Sidebar() {
       { label: 'Events List', path: '/events-list', icon: <FaClipboardList /> },
       { label: 'Create Event', path: '/create-event', icon: <FaPlusCircle /> },
       { label: 'Volunteer Matching', path: '/matching', icon: <FaUsers /> },
-      { label: 'Volunteer List', path: '/view-volunteers', icon: <FaUserCog />},
+      // { label: 'Volunteer List', path: '/view-volunteers', icon: <FaUserCog />},
       { label: 'Reports', path: '/report', icon: <FaChartBar /> },
     ]);
   }

@@ -16,7 +16,7 @@ exports.createNotification = async ({u_id, e_id, noti_type, title, message, send
 exports.getNotificationsByVolunteerId = async (u_id) => {
   try {
     const [volNoti] = await db.query(`SELECT * FROM NOTIFICATIONS WHERE u_id = ? ORDER BY createdAt DESC`, [u_id]);
-    console.log('hello', volNoti);
+    //console.log('hello', volNoti);
     return volNoti;
   } catch (error) {
     console.error('getNotificationsByVolunteerId model catch:', error.message);
@@ -27,7 +27,7 @@ exports.getNotificationsByVolunteerId = async (u_id) => {
 exports.getNotificationById = async (id) => {
   try {
     const [notification] = await db.query(`SELECT * FROM NOTIFICATIONS WHERE n_id = ?`, [id]);
-    console.log(notification[0]);
+    //console.log(notification[0]);
     return notification[0] || null;
   } catch (error) {
     console.error('getNotificationById model catch:', error.message);
@@ -40,7 +40,7 @@ exports.markNotificationAsRead = async (n_id) => {
     const readAt = new Date();
     await db.query(`UPDATE NOTIFICATIONS SET status = 'read', readAt = ? WHERE n_id = ?`, [readAt, n_id]);
     const [mark] = await db.query(`SELECT * FROM NOTIFICATIONS WHERE n_id = ?`, [n_id]);
-    console.log(mark[0]);
+    //console.log(mark[0]);
     return mark[0] || null;
   } catch (error) {
     console.error('markNotificationAsRead model catch:', error.message);
@@ -61,7 +61,7 @@ exports.deleteNotification = async (id) => {
 exports.getUnreadNotificationCount = async (volunteerId) => {
   try {
     const [unread] = await db.query(`SELECT COUNT(*) as count FROM NOTIFICATIONS WHERE u_id = ? AND status = 'unread'`, [volunteerId]);
-    console.log('unread count:', unread[0].count);
+    //console.log('unread count:', unread[0].count);
     return unread[0].count;
   } catch (error) {
     console.error('getUnreadNotificationCount model catch:', error.message);
@@ -72,7 +72,7 @@ exports.getUnreadNotificationCount = async (volunteerId) => {
 exports.getAllNotifications = async () => {
   try {
     const [result] = await db.query('SELECT * FROM NOTIFICATIONS');
-    console.log(result);
+    //console.log(result);
     return result;
   } catch (error) {
     console.error('getAllNotifications model catch:', error.message);

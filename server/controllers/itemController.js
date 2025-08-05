@@ -19,3 +19,18 @@ exports.getAllStates = async (req, res) => {
     res.status(500).json({message: "Internal Server Error"});
   }
 };
+
+exports.createSkill = async (req, res) => {
+  const skill = req.body.skill;
+  console.log(skill);
+  try {
+    const result = await itemModel.createSkill(skill);
+    if(!result){
+      return res.status(404).json({message: 'Unable to create new skill.'});
+    }
+    res.status(201).json({message: 'New skill added'});
+  } catch (error) {
+    console.error('createSkill controller catch:', error.message);
+    res.status(500).json({message: "Internal Server Error"});
+  }
+};

@@ -11,7 +11,7 @@ const getVolunteerHistory = async (req, res) => {
         if(!volunteer){
           return res.status(404).json({message: 'User not found'});
         }
-        const history = volunteerHistoryModel.getHistoryByVolunteerId(parseInt(volunteerId));
+        const history = await volunteerHistoryModel.getHistoryByVolunteerId(parseInt(volunteerId));
         
         res.status(200).json({
             success: true,
@@ -31,7 +31,7 @@ const getVolunteerHistory = async (req, res) => {
 const getHistoryEntryById = async (req, res) => {
     try {
         const { id } = req.params;
-        const entry = volunteerHistoryModel.getHistoryById(id);
+        const entry = await volunteerHistoryModel.getHistoryById(id);
         
         if (!entry) {
             return res.status(404).json({
@@ -66,7 +66,7 @@ const createHistoryEntry = async (req, res) => {
             });
         }
         
-        const entry = volunteerHistoryModel.createHistoryEntry({
+        const entry = await volunteerHistoryModel.createHistoryEntry({
             volunteerId: parseInt(volunteerId),
             eventId: parseInt(eventId),
             eventName,
@@ -96,7 +96,7 @@ const updateHistoryEntry = async (req, res) => {
         const { id } = req.params;
         const updateData = req.body;
         
-        const entry = volunteerHistoryModel.updateHistoryEntry(id, updateData);
+        const entry = await volunteerHistoryModel.updateHistoryEntry(id, updateData);
         
         if (!entry) {
             return res.status(404).json({
@@ -133,7 +133,7 @@ const completeEvent = async (req, res) => {
             });
         }
         
-        const entry = volunteerHistoryModel.completeEvent(id, {
+        const entry = await volunteerHistoryModel.completeEvent(id, {
             hoursWorked: parseInt(hoursWorked),
             skillsUsed: skillsUsed || [],
             feedback,
@@ -173,7 +173,7 @@ const getVolunteerStats = async (req, res) => {
         if(!volunteer){
           return res.status(404).json({message: 'User not found'});
         }
-        const stats = volunteerHistoryModel.getVolunteerStats(id);
+        const stats = await volunteerHistoryModel.getVolunteerStats(id);
         
         res.status(200).json({
             success: true,
@@ -201,11 +201,11 @@ const getVolunteerStats = async (req, res) => {
 const getTopVolunteers = async (req, res) => {
     try {
         const { limit } = req.query;
-        const topVolunteers = volunteerHistoryModel.getTopVolunteers(limit ? parseInt(limit) : 10);
+        const topVolunteers = await volunteerHistoryModel.getTopVolunteers(limit ? parseInt(limit) : 10);
         
         // Enrich with volunteer details
-        const enrichedTopVolunteers = topVolunteers.map(volunteer => {
-            const volunteerDetails = userModel.findVolById(volunteer.volunteerId);
+        const enrichedTopVolunteers = topVolunteers.map(async volunteer => {
+            const volunteerDetails = await userModel.findVolById(volunteer.volunteerId);
             return {
                 ...volunteer,
                 volunteerName: volunteerDetails ? volunteerDetails.name : 'Unknown',
@@ -235,7 +235,7 @@ const getEventHistory = async (req, res) => {
         if(!event){
           return res.status(404).json({message: 'Event not found'});
         }
-        const eventHistory = volunteerHistoryModel.getEventHistory(parseInt(eventId));
+        const eventHistory = await volunteerHistoryModel.getEventHistory(parseInt(eventId));
         
         // Enrich with volunteer details
         const enrichedEventHistory = eventHistory.map(async entry => {
@@ -265,7 +265,7 @@ const getEventHistory = async (req, res) => {
 const deleteHistoryEntry = async (req, res) => {
     try {
         const { id } = req.params;
-        const entry = volunteerHistoryModel.deleteHistoryEntry(id);
+        const entry = await volunteerHistoryModel.deleteHistoryEntry(id);
         
         if (!entry) {
             return res.status(404).json({
@@ -291,7 +291,7 @@ const deleteHistoryEntry = async (req, res) => {
 // Get all history (admin endpoint)
 const getAllHistory = async (req, res) => {
     try {
-        const allHistory = volunteerHistoryModel.getAllHistory();
+        const allHistory = await volunteerHistoryModel.getAllHistory();
         
         res.status(200).json({
             success: true,

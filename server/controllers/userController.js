@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config({path: '../.env'});
 const userModel = require('../models/userModel.js');
+const eventModel = require('../models/eventModel.js');
+const { getMatchingSuggestions } = require('../utils/matchLogic.js');
 
 exports.getAllVolunteers = async (req, res) => {
     try {
@@ -49,15 +51,27 @@ exports.findVolunteerById = async (req, res) => {
 };
 
 exports.getAssignedVol = async (req, res) => {
-  const {u_id, e_id} = req.body;
+  const {e_id} = req.body;
   try {
-    const vol = await userModel.getAssignedVol(u_id, e_id);
+    const vol = await userModel.getAssignedVol(e_id);
     if(!vol){
       return res.status(404).json({message: 'User not found'});
     }
     res.status(200).json(vol);
   } catch (error) {
     console.error('getAssignedVol controller catch:', error.message);
+    res.status(500).json({message: "Internal Server Error"});
+  }
+};
+
+exports.getAssignments = async (req, res) => {
+  const u_id = req.params.id;
+  console.log(u_id);
+  try {
+    const assignments = await userModel.getAssignments(u_id);
+    res.status(200).json({assignments});
+  } catch (error) {
+    console.error('getAssignments controller catch:', error.message);
     res.status(500).json({message: "Internal Server Error"});
   }
 };
@@ -160,7 +174,7 @@ exports.updateProfile = async (req, res) => {
         }
         res.status(200).json({message: 'Profile updated successfully', profile: updatedProfile});
     } catch (error) {
-        //console.error('updateProfile controller catch:', error.message);
+        console.error('updateProfile controller catch:', error.message);
         res.status(500).json({message: "Internal Server Error"});
     }
 };
@@ -205,6 +219,45 @@ exports.assignVolunteer = async (req, res) => {
     res.status(201).json({message: 'Assignment successfully logged.'});
   } catch (error) {
     console.error('assignVolunteer controller catch:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+};
+
+exports.unassignVolunteer = async (req, res) => {
+  const id = parseInt(req.params.id);
+  const eventId = req.body.e_id;
+  try {
+    const unassign = await userModel.unassignVolunteer(id, eventId);
+    if(!unassign){
+      return res.status(404).json({message: 'Unassignment has failed.'});
+    }
+    res.status(200).json({message: 'Unassignment successfully executed'});
+  } catch (error) {
+    console.error('unassignVolunteer controller catch:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+};
+
+exports.getSuggestedEvents = async (req, res) => {
+  const volunteerId = req.body.u_id;
+  try {
+    const volunteer = await userModel.findVolById(volunteerId);
+    console.log([volunteer]);
+    if(!volunteer){
+      return res.status(404).json({message: 'User not found'});
+    }
+    const events = await eventModel.getActiveEvents();
+    if(!events || events.length === 0){
+      return res.status(404).json({message: 'No active events found'});
+    }
+    const suggestions = await getMatchingSuggestions([volunteer], events);
+    if(!suggestions || suggestions.length === 0){
+      return res.status(404).json({message: 'No matching suggestions found'});
+    }
+    const topMatches = suggestions[0].matchedEvents.filter(e => !e.isOutsideRange).sort((a,b) => a.distanceInMeters - b.distanceInMeters).slice(0,5);
+    res.status(200).json(topMatches)
+  } catch (error) {
+    console.error('getSuggestedEvents controller catch:', error.message);
     res.status(500).json({message: 'Internal Server Error'});
   }
 };

@@ -1,14 +1,14 @@
 const db = require('../db.js');
 
 exports.createEvent = async (eventData) => {
-    const {event_name, event_description, event_location, event_skills, event_urgency, event_date} = eventData;
+    const {event_name, event_description, event_location, event_skills, event_urgency, event_date, event_start, event_end} = eventData;
     //console.log('data to create new event:',eventData);
     const connection = await db.getConnection();
     try {
       await connection.beginTransaction();
       // insert event
-      const [result] = await connection.query(`INSERT INTO EVENTDETAILS (event_name, event_description, event_location, event_urgency, event_date) VALUES (?, ?, ?, ?, ?)`,
-        [event_name, event_description, event_location, event_urgency, event_date]
+      const [result] = await connection.query(`INSERT INTO EVENTDETAILS (event_name, event_description, event_location, event_urgency, event_date, event_start, event_end) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [event_name, event_description, event_location, event_urgency, event_date, event_start, event_end]
       );
       const eventId = result.insertId;
       //console.log('event id:', eventId);
@@ -42,7 +42,7 @@ exports.getAllEvents = async () => {
 
 exports.getActiveEvents = async () => {
   const [events] = await db.query(`
-    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status,
+    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, e.event_start AS startTime, e.event_end AS endTime,
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
     FROM EVENTDETAILS e
     WHERE e.event_status = 'Active'
@@ -66,7 +66,7 @@ exports.updateEvent = async (id, updatedEvent) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
-    const allowedFields = ['event_name', 'event_description', 'event_location', 'event_urgency', 'event_date'];
+    const allowedFields = ['event_name', 'event_description', 'event_location', 'event_urgency', 'event_date', 'event_start', 'event_end'];
     const updates = [];
     const values = [];
     for(const key of allowedFields){
@@ -83,7 +83,7 @@ exports.updateEvent = async (id, updatedEvent) => {
     const [result] = await connection.query(query, values);
     if(result.affectedRows === 0){
       await connection.rollback();
-      return null;
+      return result;
     }
     // updating skills
     if(updatedEvent.event_skills){
@@ -99,7 +99,7 @@ exports.updateEvent = async (id, updatedEvent) => {
     return eventRows[0];
   } catch (error) {
     await connection.rollback();
-    //console.error('updateEvent model catch:', error.message);
+    console.error('updateEvent model catch:', error.message);
     throw error;
   } finally {
     connection.release();

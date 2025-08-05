@@ -1,4 +1,4 @@
-import { act, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -69,50 +69,63 @@ export default function UserProfile() {
       setError(error.message);
     }
   };
+  
+  const formatPhone = (phone) => {
+    const digits = phone.replace(/\D/g, '');
+    if(digits.length > 6){
+      return `(${digits.slice(0,3)}) ${digits.slice(3,6)} - ${digits.slice(6,10)}`;
+    }
+  };
 
-  if(loading) return <p>Loading...</p>;
+  if(loading) return <p className='text-xl text-indigo-500 text-center mt-4 animate-pulse'>Loading...</p>
   if(error) return <p>Error: {error}</p>;
   if(!profile) return <p>No Profile Data Found.</p>
   //console.log(profile.status)
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-md">
-      <div className="flex items-center border-b pb-4 mb-6 gap-1">
-        <div className="flex items-center space-x-4">
-          <div>
-            <h1 className="text-2xl font-bold">{profile.fullName}</h1>
-            <p className="text-gray-600">{profile.email}</p>
-          </div>
-        </div>
-        <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm ml-auto" onClick={() => handleStatusChange(user.id)}>Change Status</button>
-        <button onClick={() => navigate("/edit-profile")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">Edit Profile</button>
-        <button onClick={() => handleDelete(user.id)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">Delete Profile</button>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
-          <p><strong>Email:</strong> {profile.email}</p>
-          <p><strong>Phone:</strong> {profile.phone}</p>
-          <p><strong>Address:</strong> {profile.address1}, {profile.city}, {profile.state} {profile.zipcode}</p>
-        </div>
-        {user?.role === 'volunteer' && (
+    <>
+      <div className="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-md">
+        <div className="flex items-center border-b pb-4 mb-6 gap-1">
+          <div className="flex items-center space-x-4">
             <div>
-                <h2 className="text-lg font-semibold mb-2">Volunteer Info</h2>
-                <div>
-                  <p><strong>Status:</strong> {profile.status}</p>
-                </div>
-                <p className='mt-2'><strong>Skills:</strong></p>
-                <div className="flex flex-wrap gap-2 mt-1">
-                    {(profile.skills || []).map(skill => (
-                    <span key={skill} className="bg-gray-200 text-sm px-3 py-1 rounded-full">
-                        {skill}
-                    </span>
-                    ))}
-                </div>
-                <p className="mt-4"><strong>Preferences:</strong> {profile.preferences}</p>
+              <h1 className="text-2xl font-bold">{profile.fullName}</h1>
+              <p className="text-gray-600">{profile.email}</p>
             </div>
-        )}
+          </div>
+          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm ml-auto" onClick={() => handleStatusChange(user.id)}>Change Status</button>
+          <button onClick={() => navigate("/edit-profile")} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">Edit Profile</button>
+          <button onClick={() => handleDelete(user.id)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">Delete Profile</button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
+            <p><strong>Email:</strong> {profile.email}</p>
+            <p><strong>Phone:</strong> {formatPhone(profile.phone)}</p>
+            <p><strong>Address:</strong> {profile.address1}, {profile.city}, {profile.state} {profile.zipcode}</p>
+          </div>
+          {user?.role === 'volunteer' && (
+              <div>
+                  <h2 className="text-lg font-semibold mb-2">Volunteer Info</h2>
+                  <div>
+                    <p><strong>Status:</strong> {profile.status}</p>
+                  </div>
+                  <p className='mt-2'><strong>Skills:</strong></p>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                      {(profile.skills || []).map(skill => (
+                      <span key={skill} className="bg-gray-200 text-sm px-3 py-1 rounded-full">
+                          {skill}
+                      </span>
+                      ))}
+                  </div>
+                  <p className="mt-4"><strong>Preferences:</strong> {profile.preferences === '' ? 'None' : profile.preferences}</p>
+                  <p className='mt-4'><strong>Availability:</strong> {profile.availability}</p>
+              </div>
+          )}
+        </div>
       </div>
-    </div>
+      <div>
+        <h2>Upcoming Assignments</h2>
+      </div>
+    </>
   );
 }

@@ -9,3 +9,8 @@ exports.getAllStates = async () => {
   const [states] = await db.query('SELECT * FROM STATES');
   return states;
 };
+
+exports.createSkill = async (skill) => {
+  const [newSkill] = await db.query(`INSERT INTO SKILLS (skill) VALUES (?)`, [skill]);
+  return newSkill;
+};
