@@ -12,6 +12,7 @@ const { matchRouter } = require('./routes/matchRoute.js');
 const { notificationRouter } = require('./routes/notificationRoute.js');
 const { volunteerHistoryRouter } = require('./routes/volunteerHistoryRoute.js');
 const { itemRouter } = require('./routes/itemRoute.js');
+const { reportRouter } = require('./routes/reportRoute.js');
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -27,6 +28,7 @@ app.use('/api/matching', matchRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/volunteer-history', volunteerHistoryRouter);
 app.use('/api/items', itemRouter);
+app.use('/api/reports', reportRouter);
 
 app.get('/', (req, res) => {
     res.send('Server Active')
