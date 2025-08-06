@@ -17,6 +17,12 @@ volunteerHistoryRouter.post('/create-entry', volunteerHistoryController.createHi
 // Update a history entry
 volunteerHistoryRouter.patch('/update-entry/:id', volunteerHistoryController.updateHistoryEntry);
 
+// volunteer clock in for event
+volunteerHistoryRouter.patch('/clock-in/:id', volunteerHistoryController.clockInVol);
+
+// volunteer clock out for event
+volunteerHistoryRouter.patch('/clock-out/:id', volunteerHistoryController.clockOutVol);
+
 // Complete an event (mark as completed with details)
 volunteerHistoryRouter.patch('/mark-entry/:id/complete', volunteerHistoryController.completeEvent);
 

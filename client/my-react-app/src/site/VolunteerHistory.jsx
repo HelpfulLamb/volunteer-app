@@ -3,9 +3,26 @@ import { useAuth } from "../context/AuthContext";
 
 const VolunteerHistory = () => {
   const [history, setHistory] = useState([]);
+  const [events, setEvents] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
+  const enrichedHistory = history.map(entry => {
+    const matchingEvent = events.find(e => e.id === entry.e_id);
+    return { ...entry, skills: matchingEvent ? matchingEvent.event_skills?.join(', ') : 'N/A'};
+  });
+
+  // console.log("Merged:", enrichedHistory.map(e => ({
+  //     id: e.id,
+  //     event_id: e.e_id,
+  //     skills: e.skills
+  //  })));
 
   useEffect(() => {
     const fecthHistory = async () => {
@@ -25,6 +42,27 @@ const VolunteerHistory = () => {
     fecthHistory();
   }, []);
 
+  //console.log("Sample History Entry:", history[0]);
+
+  useEffect(() => {
+    const fecthEvents = async () => {
+      try {
+        const response = await fetch(`/api/events`);
+        if(!response.ok){
+          throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch events.`);
+        }
+        const data = await response.json();
+        console.log(data.events);
+        setEvents(data.events);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fecthEvents();
+  }, []);
+
   if(loading) return <div>Loading...</div>;
   if(error) return <div>Error: {error}</div>;
 
@@ -41,20 +79,20 @@ const VolunteerHistory = () => {
             <th className="border-b p-2">Urgency</th>
             <th className="border-b p-2">Date</th>
             <th className="border-b p-2">Status</th>
-            <th className="border-b p-2">Hours</th>
+            <th className="border-b p-2">Time</th>
           </tr>
         </thead>
         <tbody>
-          {history.map(event => (
+          {enrichedHistory.map(event => (
             <tr key={event.id}>
-              <td className="p-2">{event.eventName}</td>
-              <td className="p-2">{event.eventDescription}</td>
-              <td className="p-2">{event.eventLocation}</td>
-              <td className="p-2">{event.skillsUsed.join(', ')}</td>
-              <td className="p-2">{event.urgency}</td>
-              <td className="p-2">{event.eventDate}</td>
+              <td className="p-2">{event.event_name}</td>
+              <td className="p-2">{event.event_description}</td>
+              <td className="p-2">{event.event_location}</td>
+              <td className="p-2">{event.skills}</td>
+              <td className="p-2">{event.event_urgency}</td>
+              <td className="p-2">{formatDate(event.event_date)}</td>
               <td className="p-2">{event.status}</td>
-              <td className="p-2">{event.hoursWorked}</td>
+              <td className="p-2">{`${Math.floor(event.hours_worked / 60)} hr ${event.hours_worked % 60} min`}</td>
             </tr>
           ))}
         </tbody>

@@ -23,9 +23,6 @@ function categorizeEvents(events) {
 }
 
 function getBadge(event) {
-  //console.log('get badge:', event);
-  //console.log('start time', event.startTime);
-  //console.log('end time', event.endTime);
   const now = new Date();
   if (now >= new Date(event.startTime) && now <= new Date(event.endTime)) return "Live Now";
   if (new Date(event.startTime) > now) return "Upcoming";

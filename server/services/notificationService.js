@@ -47,6 +47,39 @@ class NotificationService {
         }
     }
 
+    // Send event unassignment notification
+    static async sendEventUnassignmentNotification(volunteerId, eventId) {
+        try {
+            const volunteer = await userModel.findVolById(volunteerId);
+            const event = await eventModel.findEventById(eventId);
+            
+            if (!volunteer || !event) {
+                throw new Error('Volunteer or event not found');
+            }
+
+            const title = 'Assignment Update';
+            const message = `You have been unassigned from "${event.event_name}" taking place one ${event.event_date} at ${event.event_location}`;
+            
+            // Create notification record
+            const notification = await notificationModel.createNotification({
+                u_id: volunteerId,
+                e_id: eventId,
+                noti_type: 'update',
+                title,
+                message,
+                // sender_id: senderId
+            });
+
+            // Send email notification
+            // await this.sendEmail(volunteer.email, title, message);
+            
+            return notification;
+        } catch (error) {
+            console.error('Error sending event unassignment notification:', error);
+            throw error;
+        }
+    }
+
     // Send event reminder notification
     static async sendEventReminderNotification(volunteerId, eventId) {
         try {

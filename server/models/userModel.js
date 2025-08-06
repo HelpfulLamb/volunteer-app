@@ -20,12 +20,17 @@ exports.getAssignedVol = async (e_id) => {
     JOIN USERPROFILE u ON u.u_id = a.u_id
     WHERE a.e_id = ?
     `, [e_id]);
-  return assigned[0];
+  return assigned;
 };
 
 exports.getAssignments = async (u_id) => {
   const [assigned] = await db.query(`
-    SELECT e_id FROM ASSIGNMENT WHERE u_id = ?`, [u_id]);
+    SELECT e.*, CAST(CONCAT(e.event_date, ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(e.event_date, ' ', e.event_end) AS DATETIME) as endTime
+    FROM ASSIGNMENT a
+    JOIN EVENTDETAILS e ON e.e_id = a.e_id
+    WHERE a.u_id = ?
+    ORDER BY e.event_date DESC
+    `, [u_id]);
   return assigned;
 };
 
@@ -185,6 +190,7 @@ exports.changeActiveStatus = async (id, change) => {
 exports.assignVolunteer = async (id, eventId) => {
   try {
     const [assign] = await db.query(`INSERT INTO ASSIGNMENT (u_id, e_id) VALUES (?, ?)`, [id, eventId]);
+    await db.query(`INSERT INTO VOLUNTEERHISTORY (u_id, e_id) VALUES (?, ?)`, [id, eventId]);
     return assign;
   } catch (error) {
     console.error('assignVolunteer model catch:', error.message);
@@ -195,6 +201,7 @@ exports.assignVolunteer = async (id, eventId) => {
 exports.unassignVolunteer = async (id, eventId) => {
   try {
     const [result] = await db.query(`DELETE FROM ASSIGNMENT WHERE u_id = ? AND e_id = ?`, [id, eventId]);
+    await db.query(`DELETE FROM VOLUNTEERHISTORY WHERE u_id = ? AND e_id = ?`, [id, eventId]);
     return result.affectedRows > 0;
   } catch (error) {
     console.error('unassignVolunteer model catch:', error.message);

@@ -307,6 +307,40 @@ const getAllHistory = async (req, res) => {
     }
 };
 
+const clockInVol = async (req, res) => {
+  const id = req.params.id;
+  console.log('id:', id);
+  const eventId = req.body.e_id;
+  console.log('event id:', eventId);
+  try {
+    const clockIn = await volunteerHistoryModel.clockInVol(id, eventId);
+    if(!clockIn){
+      return res.status(404).json({message: 'Event clock in failed'});
+    }
+    res.status(200).json({message: 'Successfully clocked in'});
+  } catch (error) {
+    console.error('clockInVol controller catch:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+};
+
+const clockOutVol = async (req, res) => {
+  const id = req.params.id;
+  console.log('id:', id);
+  const eventId = req.body.e_id;
+  console.log('event id:', eventId);
+  try {
+    const clockOut = await volunteerHistoryModel.clockOutVol(id, eventId);
+    if(!clockOut){
+      return res.status(404).json({message: 'Event clock out failed'});
+    }
+    res.status(200).json({message: 'Successfully clocked out'});
+  } catch (error) {
+    console.error('clockOutVol controller catch:', error.message);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+};
+
 module.exports = {
     getVolunteerHistory,
     getHistoryEntryById,
@@ -317,5 +351,7 @@ module.exports = {
     getTopVolunteers,
     getEventHistory,
     deleteHistoryEntry,
-    getAllHistory
+    getAllHistory,
+    clockInVol,
+    clockOutVol
 }; 
