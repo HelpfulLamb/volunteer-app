@@ -24,11 +24,11 @@ export default function Sidebar() {
   if(user?.role === 'volunteer'){
     navItems = navItems.concat([
       { label: 'History', path: '/volunteer-history', icon: <FaHistory /> },
+      { label: 'Notifications', path: '/notifications', icon: <FaBell /> },
     ]);
   }
   navItems = navItems.concat([
     { label: 'Profile', path: '/profile', icon: <FaUser /> },
-    { label: 'Notifications', path: '/notifications', icon: <FaBell /> },
     { label: 'Logout', path: 'LOGOUT', icon: <FaSignOutAlt /> },
   ]);
 
