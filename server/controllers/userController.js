@@ -5,6 +5,7 @@ dotenv.config({path: '../.env'});
 const userModel = require('../models/userModel.js');
 const eventModel = require('../models/eventModel.js');
 const { getMatchingSuggestions } = require('../utils/matchLogic.js');
+const NotificationService = require('../services/notificationService.js');
 
 exports.getAllVolunteers = async (req, res) => {
     try {
@@ -66,7 +67,7 @@ exports.getAssignedVol = async (req, res) => {
 
 exports.getAssignments = async (req, res) => {
   const u_id = req.params.id;
-  console.log(u_id);
+  //console.log(u_id);
   try {
     const assignments = await userModel.getAssignments(u_id);
     res.status(200).json({assignments});
@@ -216,6 +217,7 @@ exports.assignVolunteer = async (req, res) => {
     if(!assign){
       return res.status(404).json({message: 'User or event not found'});
     }
+    await NotificationService.sendEventAssignmentNotification(id, eventId);
     res.status(201).json({message: 'Assignment successfully logged.'});
   } catch (error) {
     console.error('assignVolunteer controller catch:', error.message);
@@ -231,6 +233,7 @@ exports.unassignVolunteer = async (req, res) => {
     if(!unassign){
       return res.status(404).json({message: 'Unassignment has failed.'});
     }
+    await NotificationService.sendEventUnassignmentNotification(id, eventId);
     res.status(200).json({message: 'Unassignment successfully executed'});
   } catch (error) {
     console.error('unassignVolunteer controller catch:', error.message);

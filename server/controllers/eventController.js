@@ -64,16 +64,16 @@ exports.findEventById = async (req, res) => {
 
 exports.updateEvent = async (req, res) => {
   const id = parseInt(req.params.id);
-  //console.log('update:', id);
+  console.log('update:', id);
   const updateData = req.body;
   try {
     const updatedEvent = await eventModel.updateEvent(id, updateData);
-    //console.log(updatedEvent);
+    console.log(updatedEvent);
     if(!updatedEvent){
       return res.status(404).json({message: "Event not Found."});
     }
     const assignedVol = await userModel.getAssignedVol(id);
-    //console.log('assigned:', assignedVol);
+    console.log('assigned:', assignedVol);
     if(assignedVol && assignedVol.length > 0){
       await NotificationService.sendBulkNotifications(
         assignedVol.map(v => v.u_id),

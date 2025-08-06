@@ -58,7 +58,7 @@ event_urgency enum('Low', 'Medium', 'High'),
 event_date datetime,
 event_start time,
 event_end time,
-event_status enum('Active', 'Cancelled') default 'Active'
+event_status enum('Active', 'Cancelled', 'Complete') default 'Active'
 );
 
 create table EVENT_SKILLS (
@@ -74,7 +74,9 @@ create table VOLUNTEERHISTORY (
 h_id int auto_increment primary key,
 u_id int,
 e_id int,
-e_status enum('scheduled', 'completed'),
+status enum('scheduled', 'completed', 'in_progress', 'missed') default 'scheduled',
+clock_in_time time,
+clock_out_time time,
 hours_worked int,
 feedback text,
 rating int,

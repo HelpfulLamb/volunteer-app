@@ -18,6 +18,7 @@ import NotificationsPage from './site/NotificationsPage.jsx';
 import Login from './context/Login.jsx';
 import Registration from './context/Registration.jsx';
 import VolunteersList from './admin/VolList.jsx';
+import AdminReports from './admin/Reports.jsx';
 
 
 function AppRoutes() {
@@ -48,6 +49,7 @@ function AppRoutes() {
               <Route path='/edit-profile' element={<PersonalInfoSection />} />
               <Route path='/volunteer-history' element={<VolunteerHistory />} />
               <Route path='/notifications' element={<NotificationsPage />} />
+              <Route path='/report' element={<AdminReports />} />
             </>
           ) : (
             <>

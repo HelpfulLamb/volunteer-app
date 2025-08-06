@@ -5,7 +5,7 @@ exports.createHistoryEntry = async (historyData) => {
     
     try {
         const [result] = await db.execute(
-            'INSERT INTO VOLUNTEERHISTORY (u_id, e_id, e_status, hours_worked, feedback, rating, createdAt, completedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO VOLUNTEERHISTORY (u_id, e_id, status, hours_worked, feedback, rating, createdAt, completedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 volunteerId,
                 eventId,
@@ -46,14 +46,17 @@ exports.getHistoryByVolunteerId = async (volunteerId) => {
         const [rows] = await db.execute(`
             SELECT 
                 h.h_id as id,
-                h.u_id as volunteerId,
-                h.e_id as eventId,
-                e.event_name as eventName,
-                e.event_description as eventDescription,
-                e.event_date as eventDate,
-                e.event_location as eventLocation,
-                h.e_status as status,
-                h.hours_worked as hoursWorked,
+                h.u_id,
+                h.e_id,
+                e.event_name,
+                e.event_description,
+                e.event_date,
+                e.event_location,
+                e.event_urgency,
+                h.status,
+                h.clock_in_time,
+                h.clock_out_time,
+                h.hours_worked,
                 h.feedback,
                 h.rating,
                 h.createdAt,
@@ -61,7 +64,7 @@ exports.getHistoryByVolunteerId = async (volunteerId) => {
             FROM VOLUNTEERHISTORY h
             LEFT JOIN EVENTDETAILS e ON h.e_id = e.e_id
             WHERE h.u_id = ?
-            ORDER BY h.createdAt DESC
+            ORDER BY e.event_date DESC
         `, [volunteerId]);
         
         const historyWithSkills = await Promise.all(rows.map(async (row) => {
@@ -98,7 +101,7 @@ exports.getHistoryById = async (id) => {
                 e.event_description as eventDescription,
                 e.event_date as eventDate,
                 e.event_location as eventLocation,
-                h.e_status as status,
+                h.status,
                 h.hours_worked as hoursWorked,
                 h.feedback,
                 h.rating,
@@ -136,7 +139,7 @@ exports.getHistoryById = async (id) => {
 
 exports.updateHistoryEntry = async (id, updateData) => {
     try {
-        const allowedFields = ['e_status', 'hours_worked', 'feedback', 'rating', 'completedAt'];
+        const allowedFields = ['status', 'hours_worked', 'feedback', 'rating', 'completedAt'];
         const updateFields = [];
         const updateValues = [];
         
@@ -174,7 +177,7 @@ exports.completeEvent = async (id, completionData) => {
         const { skillsUsed, feedback, rating, hoursWorked } = completionData;
         
         const [result] = await db.execute(
-            'UPDATE VOLUNTEERHISTORY SET e_status = ?, hours_worked = ?, feedback = ?, rating = ?, completedAt = ? WHERE h_id = ?',
+            'UPDATE VOLUNTEERHISTORY SET status = ?, hours_worked = ?, feedback = ?, rating = ?, completedAt = ? WHERE h_id = ?',
             ['completed', hoursWorked || 0, feedback || null, rating || null, new Date(), id]
         );
         
@@ -212,10 +215,10 @@ exports.getVolunteerStats = async (volunteerId) => {
         const [rows] = await db.execute(`
             SELECT 
                 COUNT(*) as totalEvents,
-                SUM(CASE WHEN e_status = 'completed' THEN 1 ELSE 0 END) as completedEvents,
-                SUM(CASE WHEN e_status = 'scheduled' THEN 1 ELSE 0 END) as scheduledEvents,
-                SUM(CASE WHEN e_status = 'completed' THEN hours_worked ELSE 0 END) as totalHours,
-                AVG(CASE WHEN e_status = 'completed' AND rating IS NOT NULL THEN rating ELSE NULL END) as averageRating
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completedEvents,
+                SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduledEvents,
+                SUM(CASE WHEN status = 'completed' THEN hours_worked ELSE 0 END) as totalHours,
+                AVG(CASE WHEN status = 'completed' AND rating IS NOT NULL THEN rating ELSE NULL END) as averageRating
             FROM VOLUNTEERHISTORY
             WHERE u_id = ?
         `, [volunteerId]);
@@ -227,13 +230,13 @@ exports.getVolunteerStats = async (volunteerId) => {
             FROM VOLUNTEERHISTORY h
             JOIN HISTORY_SKILLS_USED hsu ON h.h_id = hsu.h_id
             JOIN SKILLS s ON hsu.s_id = s.s_id
-            WHERE h.u_id = ? AND h.e_status = 'completed'
+            WHERE h.u_id = ? AND h.status = 'completed'
         `, [volunteerId]);
         
         const [monthlyRows] = await db.execute(`
             SELECT COUNT(*) as eventsThisMonth
             FROM VOLUNTEERHISTORY
-            WHERE u_id = ? AND e_status = 'completed' 
+            WHERE u_id = ? AND status = 'completed' 
             AND MONTH(completedAt) = MONTH(CURRENT_DATE()) 
             AND YEAR(completedAt) = YEAR(CURRENT_DATE())
         `, [volunteerId]);
@@ -241,7 +244,7 @@ exports.getVolunteerStats = async (volunteerId) => {
         const [yearlyRows] = await db.execute(`
             SELECT COUNT(*) as eventsThisYear
             FROM VOLUNTEERHISTORY
-            WHERE u_id = ? AND e_status = 'completed' 
+            WHERE u_id = ? AND status = 'completed' 
             AND YEAR(completedAt) = YEAR(CURRENT_DATE())
         `, [volunteerId]);
         
@@ -267,9 +270,9 @@ exports.getTopVolunteers = async (limit = 10) => {
             SELECT 
                 u_id as volunteerId,
                 COUNT(*) as totalEvents,
-                SUM(CASE WHEN e_status = 'completed' THEN 1 ELSE 0 END) as completedEvents,
-                SUM(CASE WHEN e_status = 'completed' THEN hours_worked ELSE 0 END) as totalHours,
-                AVG(CASE WHEN e_status = 'completed' AND rating IS NOT NULL THEN rating ELSE NULL END) as averageRating
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completedEvents,
+                SUM(CASE WHEN status = 'completed' THEN hours_worked ELSE 0 END) as totalHours,
+                AVG(CASE WHEN status = 'completed' AND rating IS NOT NULL THEN rating ELSE NULL END) as averageRating
             FROM VOLUNTEERHISTORY
             GROUP BY u_id
             ORDER BY totalHours DESC
@@ -297,7 +300,7 @@ exports.getEventHistory = async (eventId) => {
                 e.event_description as eventDescription,
                 e.event_date as eventDate,
                 e.event_location as eventLocation,
-                h.e_status as status,
+                h.status,
                 h.hours_worked as hoursWorked,
                 h.feedback,
                 h.rating,
@@ -365,7 +368,7 @@ exports.getAllHistory = async () => {
                 e.event_description as eventDescription,
                 e.event_date as eventDate,
                 e.event_location as eventLocation,
-                h.e_status as status,
+                h.status,
                 h.hours_worked as hoursWorked,
                 h.feedback,
                 h.rating,
@@ -398,4 +401,24 @@ exports.getAllHistory = async () => {
         console.error('Error getting all history:', error);
         throw error;
     }
-}; 
+};
+
+exports.clockInVol = async (volunteerId, eventId) => {
+  try {
+    const [volunteer] = await db.query(`UPDATE VOLUNTEERHISTORY SET status = 'in_progress', clock_in_time = NOW() WHERE e_id = ? AND u_id = ?`, [eventId, volunteerId]);
+    return volunteer.affectedRows > 0;
+  } catch (error) {
+    console.error('clockInVol model catch:', error.message);
+    throw error;
+  }
+};
+
+exports.clockOutVol = async (volunteerId, eventId) => {
+  try {
+    const [volunteer] = await db.query(`UPDATE VOLUNTEERHISTORY SET status = 'completed', clock_out_time = NOW(), completedAt = NOW(), hours_worked = TIMESTAMPDIFF(MINUTE, clock_in_time, NOW()) WHERE e_id = ? AND u_id = ?`, [eventId, volunteerId]);
+    return volunteer.affectedRows > 0;
+  } catch (error) {
+    console.error('clockOutVol model catch:', error.message);
+    throw error;
+  }
+};

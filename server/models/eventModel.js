@@ -35,6 +35,7 @@ exports.getAllEvents = async () => {
     SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, CAST(CONCAT(e.event_date, ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(e.event_date, ' ', e.event_end) AS DATETIME) as endTime,
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
     FROM EVENTDETAILS e
+    ORDER BY e.event_date DESC
     `);
   //console.log(events);
   return events;
