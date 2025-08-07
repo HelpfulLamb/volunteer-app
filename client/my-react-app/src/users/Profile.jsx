@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import ConfirmModal from '../components/ConfirmModal';
 
 function getVolunteerBadge(event, historyEntry){
   const now = new Date();
@@ -74,6 +75,12 @@ export default function UserProfile() {
   const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
@@ -155,13 +162,7 @@ export default function UserProfile() {
 
   const handleStatusChange = async (id) => {
     try {
-      let activity = "";
-      if(profile.status === 'Active'){
-        activity = 'Inactive';
-      }
-      if(profile.status === 'Inactive'){
-        activity = 'Active'
-      }
+      let activity = profile.status === 'Active' ? 'Inactive' : 'Active';
       const response = await fetch(`/api/users/status-change/${id}`, {
         method: 'PATCH',
         headers: {
@@ -172,6 +173,7 @@ export default function UserProfile() {
       if(!response.ok){
         throw new Error(`HTTP Error! Status: ${response.status}. Failed to update profile status.`);
       }
+      setProfile(prev => ({ ...prev, status: activity }));
     } catch (error) {
       setError(error.message);
     }
@@ -221,10 +223,26 @@ export default function UserProfile() {
             </div>
           </div>
           {user?.role === 'volunteer' && (
-            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm ml-auto" onClick={() => handleStatusChange(user.id)}>Change Status</button>
+            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm ml-auto" onClick={() => setModal({
+              open: true,
+              title: 'Status Change',
+              message: profile.status === 'Active' ? 'Are you sure you want to change your status to "Inactive"?' : 'Are you sure you want to change your status to "Active"?',
+              onConfirm: async () => {
+                setModal({ ...modal, open: false });
+                await handleStatusChange(user.id);
+              }
+            })}>Change Status</button>
           )}
           <button onClick={() => navigate("/edit-profile")} className={`${user?.role === 'admin' ? 'ml-auto': ''} bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm`}>Edit Profile</button>
-          <button onClick={() => handleDelete(user.id)} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">Delete Profile</button>
+          <button onClick={() => setModal({
+            open: true,
+            title: 'Delete Profile',
+            message: 'Are you sure you want to delete your profile?',
+            onConfirm: async () => {
+              setModal({ ...modal, open: false });
+              await handleDelete(user.id);
+            }
+          })} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">Delete Profile</button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -269,6 +287,7 @@ export default function UserProfile() {
           </div>
         </div>
       )}
+      <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />
     </>
   );
 }

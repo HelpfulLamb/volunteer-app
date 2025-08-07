@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FiSearch, FiUserCheck, FiCalendar, FiMapPin, FiClock, FiCheck, FiX } from 'react-icons/fi';
+import ConfirmModal from '../components/ConfirmModal';
 
 const VolunteerMatchingPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,6 +14,12 @@ const VolunteerMatchingPage = () => {
   const [skills, setSkills] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -241,7 +248,15 @@ const VolunteerMatchingPage = () => {
                         )}
                     </p>
                   </div>
-                  <button onClick={() => toggleAssignment(match.volunteer.id, match.event.id)} title={match.volunteer.assigned ? 'Unassign' : 'Assign'}
+                  <button onClick={() => setModal({
+                    open: true,
+                    title: 'Assignment',
+                    message: `Are you sure you want to assign ${match.volunteer.fullName} to ${match.event.event_name}?`,
+                    onConfirm: () => {
+                      setModal({ ...modal, open: false});
+                      toggleAssignment(match.volunteer.id, match.event.id);
+                    }
+                  })} title='Assign'
                     className={`p-2 rounded-full ${match.volunteer.assigned ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'} hover:bg-green-200 transition`}>
                     <FiCheck />
                   </button>
@@ -259,11 +274,9 @@ const VolunteerMatchingPage = () => {
               </div>
             ))}
           </div>
-          {/* <div className="p-4 border-t border-gray-200">
-            <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">Confirm All Assignments</button>
-          </div> */}
         </div>
       </div>
+      <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />
     </div>
   );
 };

@@ -2,9 +2,16 @@ import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaHome, FaPlusCircle, FaUsers, FaBell, FaUser, FaSignOutAlt, FaClipboardList, FaChartBar, FaAngleDoubleLeft, FaBars, FaHistory, FaUserCog } from "react-icons/fa";
+import ConfirmModal from '../components/ConfirmModal';
 
 export default function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [modal, setModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
   const [activeItem, setActiveItem] = useState('/home');
   const navigate = useNavigate();
   const { logout, user } = useAuth();
@@ -34,9 +41,17 @@ export default function Sidebar() {
 
   const handleNavigation = (path) => {
     if(path === 'LOGOUT') {
-        logout();
-        navigate('/');
-        return;
+      setModal({
+        open: true,
+        title: 'Confirm Logout',
+        message: 'Are you sure you want to logout?',
+        onConfirm: () => {
+          setModal({ ...modal, open: false });
+          logout();
+          navigate('/');
+        }
+      });
+      return;
     }
     setActiveItem(path);
     navigate(path);
@@ -78,6 +93,7 @@ export default function Sidebar() {
           </div>
         )}
       </div>
+      <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />
     </div>
   );
 }

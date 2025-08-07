@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import ConfirmModal from "../components/ConfirmModal";
 
 function EventTable({ eventInformation, onDelete }) {
+  const [modal, setModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
   const navigate = useNavigate();
   if(!eventInformation || !Array.isArray(eventInformation)) {
     return <div>No Event data is available!</div>
@@ -34,12 +41,21 @@ function EventTable({ eventInformation, onDelete }) {
               </td>
               <td className="p-2 space-x-2">
                 <button className="text-blue-600 hover:underline" onClick={() => navigate(`/edit-event/${event.id}`, {state: event})}>Edit</button>
-                <button className="text-red-600 hover:underline" onClick={() => onDelete(event.id)}>Delete</button>
+                <button className="text-red-600 hover:underline" onClick={() => setModal({
+                  open: true,
+                  title: 'Delete Event',
+                  message: 'Are you sure you want to delete this event?',
+                  onConfirm: async () => {
+                    setModal({ ...modal, open: false });
+                    await onDelete(event.id);
+                  }
+                })}>Delete</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />
     </div>
   );
 }
