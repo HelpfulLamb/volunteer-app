@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function PersonalInfoSection() {
   const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState({success: '', error: ''});
   const [states, setStates] = useState([]);
   const [skills, setSkills] = useState([]);
   const [formData, setFormData] = useState({
@@ -113,7 +114,11 @@ export default function PersonalInfoSection() {
       if(!response.ok) {
         throw new Error(`HTTP Error! Status: ${response.status}. Failed to update event.`);
       }
-      navigate('/profile');
+      setMessage({success: 'Profile Successfully Updated.', error: ''});
+      setTimeout(() => {
+        setMessage({success: '', error: ''});
+        navigate('/profile');
+      }, 1000);
     } catch (error) {
       setErrors(error.message);
     }
@@ -284,7 +289,10 @@ export default function PersonalInfoSection() {
         </section>
       )}
       <div className="flex justify-end">
+        {message.success && <p className='text-green-600 font-medium mr-auto'>{message.success} </p>}
+        {message.error && <p className='text-red-600 font-medium mr-auto'>{message.error} </p>}
         <button type="submit" className="px-6 py-2 text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700">Save Profile</button>
+        <button type='button' onClick={() => navigate('/profile')} className='ml-1 px-6 py-2 text-sm font-medium rounded-lg shadow-sm text-white bg-red-600 hover:bg-red-700'>Cancel</button>
       </div>
     </form>
   );

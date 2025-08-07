@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from "../components/ConfirmModal";
 
-function EventTable({ eventInformation, onDelete }) {
+function EventTable({ eventInformation, onDelete, message }) {
   const [modal, setModal] = useState({
     open: false,
     title: '',
@@ -20,6 +20,8 @@ function EventTable({ eventInformation, onDelete }) {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4">Events List</h1>
+      {message.error && <p className="text-red-600">{message.error}</p>}
+      {message.success && <p className="text-green-600">{message.success}</p>}
       <table className="w-full text-left border-collapse">
         <thead>
           <tr>
@@ -44,7 +46,7 @@ function EventTable({ eventInformation, onDelete }) {
                 <button className="text-red-600 hover:underline" onClick={() => setModal({
                   open: true,
                   title: 'Delete Event',
-                  message: 'Are you sure you want to delete this event?',
+                  message: `Are you sure you want to delete "${event.event_name}"?`,
                   onConfirm: async () => {
                     setModal({ ...modal, open: false });
                     await onDelete(event.id);
@@ -98,7 +100,11 @@ export default function EventsList() {
             throw new Error(`HTTP Error! Status: ${response.status}. Failed to delete event.`);
         }
         //console.log('event deleted');
+        setMessage({success: 'Event Successfully Deleted.', error: ''});
         setEvents(prev => prev.filter(event => event.id !== id));
+        setTimeout(() => {
+          setMessage({ success: '', error: '' });
+        }, 1000);
     } catch (error) {
         setMessage({error: 'An error occurred while trying to delete an event. Please try again.', success: ''});
         setError(error.message);
@@ -110,9 +116,7 @@ export default function EventsList() {
 
   return (
     <>
-      {message.error && <p className="text-red-600">{message.error}</p>}
-      {message.success && <p className="text-green-600">{message.success}</p>}
-      <EventTable eventInformation={events} onDelete={handleDelete} />
+      <EventTable eventInformation={events} onDelete={handleDelete} message={message} />
     </>
   );
 }

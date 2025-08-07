@@ -18,12 +18,6 @@ const VolunteerHistory = () => {
     return { ...entry, skills: matchingEvent ? matchingEvent.event_skills?.join(', ') : 'N/A'};
   });
 
-  // console.log("Merged:", enrichedHistory.map(e => ({
-  //     id: e.id,
-  //     event_id: e.e_id,
-  //     skills: e.skills
-  //  })));
-
   useEffect(() => {
     const fecthHistory = async () => {
       try {
@@ -69,34 +63,40 @@ const VolunteerHistory = () => {
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-4">Volunteer History</h2>
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr>
-            <th className="border-b p-2">Event Name</th>
-            <th className="border-b p-2">Description</th>
-            <th className="border-b p-2">Location</th>
-            <th className="border-b p-2">Required Skills</th>
-            <th className="border-b p-2">Urgency</th>
-            <th className="border-b p-2">Date</th>
-            <th className="border-b p-2">Status</th>
-            <th className="border-b p-2">Time</th>
-          </tr>
-        </thead>
-        <tbody>
-          {enrichedHistory.map(event => (
-            <tr key={event.id}>
-              <td className="p-2">{event.event_name}</td>
-              <td className="p-2">{event.event_description}</td>
-              <td className="p-2">{event.event_location}</td>
-              <td className="p-2">{event.skills}</td>
-              <td className="p-2">{event.event_urgency}</td>
-              <td className="p-2">{formatDate(event.event_date)}</td>
-              <td className="p-2">{event.status}</td>
-              <td className="p-2">{`${Math.floor(event.hours_worked / 60)} hr ${event.hours_worked % 60} min`}</td>
+      {enrichedHistory.length > 0 ? (
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr>
+              <th className="border-b p-2">Event Name</th>
+              <th className="border-b p-2">Description</th>
+              <th className="border-b p-2">Location</th>
+              <th className="border-b p-2">Required Skills</th>
+              <th className="border-b p-2">Urgency</th>
+              <th className="border-b p-2">Date</th>
+              <th className="border-b p-2">Status</th>
+              <th className="border-b p-2">Time</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {enrichedHistory.map(event => (
+              <tr key={event.id}>
+                <td className="p-2">{event.event_name}</td>
+                <td className="p-2">{event.event_description}</td>
+                <td className="p-2">{event.event_location}</td>
+                <td className="p-2">{event.skills}</td>
+                <td className="p-2">{event.event_urgency}</td>
+                <td className="p-2">{formatDate(event.event_date)}</td>
+                <td className="p-2">{event.status}</td>
+                <td className="p-2">{`${Math.floor(event.hours_worked / 60)} hr ${event.hours_worked % 60} min`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <p className="text-gray-500 text-lg">No History to display</p>
+        </div>
+      )}
     </div>
   );
 };

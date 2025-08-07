@@ -65,9 +65,6 @@ export default function EventManagementForm({  onSubmit, mode = 'create' }) {
         event_start: initialData.startTime ? formatTime(initialData.startTime) : '',
         event_end: initialData.endTime ? formatTime(initialData.endTime) : '',
       });
-      // console.log('init data:', initialData.event_start);
-      // console.log('f data:', formData.event_start);
-      //console.log('mapped skills to id:', mappedSkills);
     }
   }, [initialData, mode, skills]);
 
@@ -156,7 +153,12 @@ export default function EventManagementForm({  onSubmit, mode = 'create' }) {
     e.preventDefault();
     if(!validateForm()) return;
     if(mode === 'edit') {
-      onSubmit(formData);
+      setMessage({success: 'Event updated successfully.', error: ''});
+      setTimeout(() => {
+        setMessage({ success: '', error: '' });
+        onSubmit(formData);
+        navigate('/events-list');
+      }, 500);
     } else {
       try {
         const response = await fetch('/api/events/create-event', {
@@ -272,11 +274,11 @@ export default function EventManagementForm({  onSubmit, mode = 'create' }) {
       </div>
       <div className="flex gap-4 pt-4">
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">{mode === 'edit' ? 'Update Event' : 'Create Event'}</button>
-        {mode === 'edit' && (
-          <button type='button' onClick={() => navigate('/events-list')} className='ml-auto bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700'>Cancel</button>
-        )}
         {message.success && <p className='text-green-600 font-medium'>{message.success}</p>}
         {message.error && <p className='text-red-600 font-medium'>{message.error}</p>}
+        {mode === 'edit' && (
+          <button type='button' onClick={() => handleSubmit()} className='ml-auto bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700'>Cancel</button>
+        )}
       </div>
     </form>
   );
