@@ -11,21 +11,37 @@ async function generateVolunteerPDF(data){
   doc.moveDown();
   // this is for the headers
   doc.fontSize(12);
-  doc.text('Name', 50, doc.y, { continued: true, width: 150 });
-  doc.text('Event', 200, doc.y, { continued: true, width: 150 });
-  doc.text('Status', 350, doc.y, { continued: true, width: 150 });
-  doc.text('Hours', 450, doc.y);
-  // separate header from content
-  doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-  doc.moveDown(0.5);
-  // rows
-  data.forEach((entry) => {
-    doc.text(entry.fullName || '', 50, doc.y, { continued: true, width: 150 });
-    doc.text(entry.event_name || '', 200, doc.y, { continued: true, width: 150 });
-    doc.text(entry.status || '', 350, doc.y, { continued: true, width: 100 });
-    doc.text(String(entry.hours_worked ?? ''), 450, doc.y);
+  data.forEach((vol, index) => {
+    doc.font('Helvetica-Bold').fontSize(14).text(`${index + 1}. ${vol.fullName}`);
+    doc.moveDown(0.3);
+    //details
+    doc.font('Helvetica').fontSize(12);
+    doc.text(`Email: ${vol.email}`);
+    doc.text(`Phone: ${vol.phone}`);
     doc.moveDown(0.5);
-  });
+    // skills
+    if(vol.skills.length > 0){
+      doc.font('Helvetica-Bold').text('Skills');
+      vol.skills.forEach((skill) => {
+        doc.font('Helvetica').text(` - ${skill}`)
+      });
+    } else {
+      doc.font('Helvetica-Oblique').text('No skills available.');
+    }
+    doc.moveDown(0.5);
+    if(vol.events.length > 0){
+      doc.font('Helvetica-Bold').text('Events Participated');
+      vol.events.forEach((event) => {
+        doc.font('Helvetica').text(` - ${event.event_name} (${new Date(event.event_date).toDateString()}) - ${event.status}, ${`${Math.floor(event.hours_worked / 60)} hr ${event.hours_worked % 60} min`}`);
+      });
+    } else {
+      doc.font('Helvetica-Oblique').text('No history available.');
+    }
+    doc.moveDown(1);
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+    doc.moveDown(1);
+
+  })
   // finalize pdf file
   doc.end();
   return new Promise((resolve, reject) => {
@@ -46,20 +62,28 @@ async function generateEventPDF(data){
   doc.moveDown();
   // this is for the headers
   doc.fontSize(12);
-  doc.text('Name', 50, doc.y, { continued: true, width: 150 });
-  doc.text('Location', 200, doc.y, { continued: true, width: 150 });
-  doc.text('Status', 350, doc.y, { continued: true, width: 150 });
-  doc.text('Date', 450, doc.y);
-  // separate header from content
-  doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-  doc.moveDown(0.5);
-  // rows
-  data.forEach((entry) => {
-    doc.text(entry.event_name || '', 50, doc.y, { continued: true, width: 100 });
-    doc.text(entry.event_location || '', 200, doc.y, { continued: true, width: 100 });
-    doc.text(entry.event_status || '', 350, doc.y, { continued: true, width: 100 });
-    doc.text(entry.event_date || '', 350, doc.y, { continued: true, width: 100 });
+  data.forEach((event, index) => {
+    doc.font('Helvetica-Bold').fontSize(14).text(`${index + 1}. ${event.event_name}`);
+    doc.moveDown(0.3);
+    // details
+    doc.font('Helvetica').fontSize(12);
+    doc.text(`Date: ${new Date(event.event_date).toDateString()}`);
+    doc.text(`Location: ${event.event_location}`);
+    doc.text(`Status: ${event.event_status}`);
+    doc.text(`Urgency: ${event.event_urgency}`);
     doc.moveDown(0.5);
+    // volunteer list
+    if(event.volunteers.length > 0){
+      doc.font('Helvetica-Bold').text('Volunteers Assigned');
+      event.volunteers.forEach((vol) => {
+        doc.font('Helvetica').text(` - ${vol.name} (${vol.email})`);
+      })
+    } else {
+      doc.font('Helvetica-Oblique').text('No volunteers assigned.');
+    }
+    doc.moveDown(1);
+    doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+    doc.moveDown(1);
   });
   // finalize pdf file
   doc.end();

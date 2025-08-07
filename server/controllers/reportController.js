@@ -5,14 +5,15 @@ const reportService = require('../services/reportService.js');
 exports.historyReport = async (req, res) => {
   const format = req.query.format;
   try {
-    const data = await reportService.getVolunteerParticipationData();
     if(format === 'csv'){
+      const data = await reportService.getVolunteerParticipationDataCSV();
       const csv = await generateCSV.generateVolunteerCSV(data);
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=volunteer_report.csv');
       return res.send(csv);
     }
     if(format === 'pdf'){
+      const data = await reportService.getVolunteerParticipationDataPDF();
       const pdf = await generatePDF.generateVolunteerPDF(data);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename=volunteer_report.pdf');
@@ -27,14 +28,15 @@ exports.historyReport = async (req, res) => {
 exports.eventReport = async (req, res) => {
   const format = req.query.format;
   try {
-    const data = await reportService.getEventData();
     if(format === 'csv'){
+      const data = await reportService.getEventDataCSV();
       const csv = await generateCSV.generateEventCSV(data);
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename=event_report.csv');
       return res.send(csv);
     }
     if(format === 'pdf'){
+      const data = await reportService.getEventDataPDF();
       const pdf = await generatePDF.generateEventPDF(data);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', 'attachment; filename=event_report.pdf');

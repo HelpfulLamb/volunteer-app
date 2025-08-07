@@ -2,13 +2,11 @@ import { useMemo, useState, useEffect } from 'react';
 import { FaMapMarkerAlt, FaClock } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import image from './volunteer-placeholder.jpg';
+import ConfirmModal from '../components/ConfirmModal';
 
 const now = new Date();
 
 function categorizeEvents(events) {
-  //console.log('categorizeEvents:', events);
-  //console.log('start time:', events[0]?.startTime);
-  //console.log('end time:', events[0]?.endTime);
   return {
     ongoing: events.filter(
       (e) => now >= new Date(e.startTime) && now <= new Date(e.endTime)
@@ -73,9 +71,6 @@ export default function Home() {
   };
 
   const { ongoing, upcoming, past } = useMemo(() => categorizeEvents(events), [events]);
-  //console.log('ongoing', ongoing);
-  //console.log('upcoming', upcoming);
-  //console.log('past', past);
 
   if(error) return <div>Error: {error}</div>;
 
@@ -106,13 +101,6 @@ function OngoingEventsSlider({ events }) {
     hours = hours % 12 || 12;
     return `${date.toLocaleDateString()} ${hours}:${minutes} ${period}`;
   };
-
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentSlide((prev) => (prev + 1) % events.length);
-  //   }, 5000);
-  //   return () => clearInterval(interval);
-  // }, [events.length]);
 
   return (
     <section className="mb-12">
@@ -174,6 +162,12 @@ function EventsSection({ title, events, badgeColor, assignments = [], setAssignm
 function EventCard({ event, badgeColor, assignments, setAssignments, fetchAssignments, updateEventStatus }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [modal, setModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  });
   const isAssigned = useMemo(() => {
     return assignments.some(a => a.e_id === event.id);
   }, [assignments, event.id]);
@@ -262,17 +256,34 @@ function EventCard({ event, badgeColor, assignments, setAssignments, fetchAssign
             <span>{formatTime(event.startTime)} - {formatTime(event.endTime)}</span>
           </div>
           {user?.role === 'admin' && !isPast && !isCancelled && (
-            <button onClick={handleStatusChange} className='text-gray-600 rounded-full px-2 py-1 bg-red-300 mt-2 hover:cursor-pointer hover:bg-red-400 hover:text-white'>Cancel Event</button>
+            <button onClick={() => setModal({
+              open: true,
+              title: 'Cancel Event',
+              message: 'Are you sure you want to cancel this event?',
+              onConfirm: async () => {
+                setModal({ ...modal, open:false });
+                await handleStatusChange();
+              }
+            })} className='text-white rounded-full px-2 py-1 bg-red-300 mt-2 hover:cursor-pointer hover:bg-red-400 hover:text-white'>Cancel Event</button>
           )}
           {isAssigned && !isCancelled && (
             <span className="mr-55 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium mt-1">Attending</span>
           )}
           {user?.role === 'volunteer' && !isPast && !isCancelled && (
-            <button onClick={() => handleAttendance(user.id)} className={`text-gray-600 rounded-full px-2 py-1 mt-2 hover:cursor-pointer ${isAssigned ? 'bg-red-300 hvoer:bg-red-400 hover:text-white' : 'bg-green-300 hover:bg-green-400 hover:text-white'}`}>{isAssigned ? 'Cancel Assignment' : 'Attend'}</button>
+            <button onClick={() => setModal({
+              open: true,
+              title: isAssigned ? 'Cancel Assignment' : 'Confirm Attendance',
+              message: isAssigned ? 'Are you sure you want to cancel your attendance?' : 'Do you want to attend this event?',
+              onConfirm: async () => {
+                setModal({ ...modal, open:false });
+                await handleAttendance(user.id);
+              }
+            })} className={`text-white rounded-full px-2 py-1 mt-2 hover:cursor-pointer ${isAssigned ? 'bg-red-300 hover:bg-red-400 hover:text-white' : 'bg-green-300 hover:bg-green-400 hover:text-white'}`}>{isAssigned ? 'Cancel Assignment' : 'Attend'}</button>
           )}
           {error && <p className="text-red-500 text-sm">{error}</p>}
         </div>
       </div>
+      <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />
     </div>
   );
 }

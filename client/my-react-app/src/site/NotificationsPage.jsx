@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import ConfirmModal from '../components/ConfirmModal';
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState([]);
   const [errors, setErrors] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState({
+    open: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  })
   const [filter, setFilter] = useState('all');
   const { user } = useAuth();
 
@@ -118,7 +125,15 @@ const NotificationsPage = () => {
           <li key={n.id} className={`p-4 rounded-lg shadow border relative cursor-pointer transition ${n.read ? 'bg-gray-100 hover:bg-gray-200' : 'bg-white border-blue-400 hover:bg-blue-50'}`} onClick={() => toggleRead(n.id)}>
             <button title="Delete notification" onClick={(e) => {
               e.stopPropagation();
-              handleDelete(n.id);
+              setModal({
+                open: true,
+                title: 'Delete Notification',
+                message: 'Are you sure you want to delete this message.',
+                onConfirm: () => {
+                  setModal({ ...modal, open:false });
+                  handleDelete(n.id);
+                }
+              });
               }} className='absolute top-2 right-5 text-gray-500 hover:text-red-600 text-sm font-bold'>X</button>
             <h4 className='text-lg font-semibold'>{n.subject}</h4>
             <p className='text-gray-700 mt-1'>{n.message}</p>
@@ -126,6 +141,7 @@ const NotificationsPage = () => {
           </li>
         ))}
       </ul>
+      <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />
     </div>
   );
 };
