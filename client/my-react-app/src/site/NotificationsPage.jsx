@@ -38,7 +38,7 @@ const NotificationsPage = () => {
 
   const toggleRead = async (id) => {
     try {
-      console.log("Marking notification as read:", id);
+      //console.log("Marking notification as read:", id);
       const response = await fetch(`/api/notifications/mark-notification/${id}/read`, {
         method: 'PATCH'
       });
@@ -87,7 +87,7 @@ const NotificationsPage = () => {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to fetch unread notifications.`);
         }
         const data = await response.json();
-        console.log("Unread count:", data.data.count);
+        //console.log("Unread count:", data.data.count);
       } catch (error) {
         console.error("Failed to fetch unread count", error);
         setErrors(error.message);
@@ -121,25 +121,35 @@ const NotificationsPage = () => {
         <button onClick={() => markAllRead()} className='ml-auto px-4 py-2 rounded-md bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition'>Mark All as Read</button>
       </div>
       <ul className='space-y-4'>
-        {filteredNotifications.map(n => (
-          <li key={n.id} className={`p-4 rounded-lg shadow border relative cursor-pointer transition ${n.read ? 'bg-gray-100 hover:bg-gray-200' : 'bg-white border-blue-400 hover:bg-blue-50'}`} onClick={() => toggleRead(n.id)}>
-            <button title="Delete notification" onClick={(e) => {
-              e.stopPropagation();
-              setModal({
-                open: true,
-                title: 'Delete Notification',
-                message: 'Are you sure you want to delete this message.',
-                onConfirm: () => {
-                  setModal({ ...modal, open:false });
-                  handleDelete(n.id);
-                }
-              });
+        {filteredNotifications.length === 0 ? (
+          <div className="bg-gray-50 rounded-lg p-8 text-center">
+            <p className="text-gray-500 text-lg">
+              {filter === 'unread' && 'No unread  notifications available.'}
+              {filter === 'read' && 'No read notifications available.'}
+              {filter === 'all' && 'No notifications to display.'}
+            </p>
+          </div>
+        ) : (
+          filteredNotifications.map(n => (
+            <li key={n.id} className={`p-4 rounded-lg shadow border relative cursor-pointer transition ${n.read ? 'bg-gray-100 hover:bg-gray-200' : 'bg-white border-blue-400 hover:bg-blue-50'}`} onClick={() => toggleRead(n.id)}>
+              <button title="Delete notification" onClick={(e) => {
+                e.stopPropagation();
+                setModal({
+                  open: true,
+                  title: 'Delete Notification',
+                  message: 'Are you sure you want to delete this message.',
+                  onConfirm: () => {
+                    setModal({ ...modal, open:false });
+                    handleDelete(n.id);
+                  }
+                });
               }} className='absolute top-2 right-5 text-gray-500 hover:text-red-600 text-sm font-bold'>X</button>
-            <h4 className='text-lg font-semibold'>{n.subject}</h4>
-            <p className='text-gray-700 mt-1'>{n.message}</p>
-            <small className='text-gray-500 mt-2 block'>{n.timestamp}</small>
-          </li>
-        ))}
+              <h4 className='text-lg font-semibold'>{n.subject}</h4>
+              <p className='text-gray-700 mt-1'>{n.message}</p>
+              <small className='text-gray-500 mt-2 block'>{n.timestamp}</small>
+            </li>
+          ))
+        )}
       </ul>
       <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />
     </div>

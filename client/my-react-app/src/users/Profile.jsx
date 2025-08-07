@@ -74,6 +74,7 @@ export default function UserProfile() {
   const [assignment, setAssignment] = useState([]);
   const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState({success: '', error: ''});
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({
     open: false,
@@ -173,8 +174,13 @@ export default function UserProfile() {
       if(!response.ok){
         throw new Error(`HTTP Error! Status: ${response.status}. Failed to update profile status.`);
       }
+      setMessage({success: 'Status Changed Successfully.', error: ''});
       setProfile(prev => ({ ...prev, status: activity }));
+      setTimeout(() => {
+        setMessage({success: '', error: ''});
+      }, 1000);
     } catch (error) {
+      setMessage({error: 'Status failed to change.', success: ''});
       setError(error.message);
     }
   };
@@ -218,6 +224,8 @@ export default function UserProfile() {
         <div className="flex items-center border-b pb-4 mb-6 gap-1">
           <div className="flex items-center space-x-4">
             <div>
+              {message.success && <p className='text-green-600 font-medium'>{message.success}</p>}
+              {message.error && <p className='text-red-600 font-medium'>{message.error}</p>}
               <h1 className="text-2xl font-bold">{profile.fullName}</h1>
               <p className="text-gray-600">{profile.email}</p>
             </div>
@@ -274,17 +282,23 @@ export default function UserProfile() {
       {user?.role === 'volunteer' && (
         <div>
           <h2 className="text-2xl font-bold mb-6 text-gray-800 mt-8">Upcoming Assignments</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {assignment.map(event => {
-              const matchingHistory = history.find(h => h.e_id === event.e_id);
-              console.log('matchingHistory:', matchingHistory);
-              const clockedIn = matchingHistory?.clock_in_time && !matchingHistory?.clock_out_time;
-              const hasHistory = !!matchingHistory;
-              return (
-                <EventCard key={event.e_id} event={event} clockedIn={clockedIn} hasHistory={hasHistory} historyEntry={matchingHistory} onClockToggle={() => handleClockToggle(event.e_id, clockedIn)} />
-              );
-            })}
-          </div>
+            {assignment.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {assignment.map(event => {
+                const matchingHistory = history.find(h => h.e_id === event.e_id);
+                console.log('matchingHistory:', matchingHistory);
+                const clockedIn = matchingHistory?.clock_in_time && !matchingHistory?.clock_out_time;
+                const hasHistory = !!matchingHistory;
+                return (
+                  <EventCard key={event.e_id} event={event} clockedIn={clockedIn} hasHistory={hasHistory} historyEntry={matchingHistory} onClockToggle={() => handleClockToggle(event.e_id, clockedIn)} />
+                );
+              })}
+            </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-8 text-center">
+                <p className="text-gray-500 text-lg">No Upcoming Assignments to display</p>
+              </div>
+            )}
         </div>
       )}
       <ConfirmModal isOpen={modal.open} title={modal.title} message={modal.message} onConfirm={modal.onConfirm} onCancel={() => setModal({ ...modal, open: false })} />

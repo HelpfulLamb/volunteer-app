@@ -259,7 +259,7 @@ function EventCard({ event, badgeColor, assignments, setAssignments, fetchAssign
             <button onClick={() => setModal({
               open: true,
               title: 'Cancel Event',
-              message: 'Are you sure you want to cancel this event?',
+              message: `Are you sure you want to cancel "${event.event_name}"?`,
               onConfirm: async () => {
                 setModal({ ...modal, open:false });
                 await handleStatusChange();
@@ -273,7 +273,7 @@ function EventCard({ event, badgeColor, assignments, setAssignments, fetchAssign
             <button onClick={() => setModal({
               open: true,
               title: isAssigned ? 'Cancel Assignment' : 'Confirm Attendance',
-              message: isAssigned ? 'Are you sure you want to cancel your attendance?' : 'Do you want to attend this event?',
+              message: isAssigned ? `Are you sure you want to cancel your attendance to "${event.event_name}"?` : `Do you want to attend "${event.event_name}"?`,
               onConfirm: async () => {
                 setModal({ ...modal, open:false });
                 await handleAttendance(user.id);
