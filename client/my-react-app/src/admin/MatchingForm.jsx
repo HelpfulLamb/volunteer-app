@@ -174,7 +174,7 @@ const VolunteerMatchingPage = () => {
                     <FiMapPin className="mr-2" /> {`${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zipcode}`}
                   </div>
                   <div className="flex items-center text-gray-600 text-sm mb-2">
-                    <FiClock className="mr-2" /> {Array.isArray(volunteer.availability) && volunteer.availability.length > 0 ? formatDate(volunteer.availability) : volunteer.preferences?.trim() ? volunteer.preferences : 'N/A'}
+                    <FiClock className="mr-2" /> {Array.isArray(volunteer.availability) && volunteer.availability.length > 0 ? volunteer.availability.map(d => formatDate(d)).join(', ') : volunteer.preferences?.trim() ? volunteer.preferences : 'N/A'}
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {volunteer.skills.map(skill => (

@@ -58,7 +58,7 @@ export default function PersonalInfoSection() {
   const validateForm = () => {
     const newErrors = {};
     const lettersAndSpace = /^[A-Za-z\s]+$/;
-    const lettersSpacesNumbers = /^[A-Za-z0-9\s]+$/;
+    const lettersSpacesNumbers = /^[A-Za-z0-9\s,]+$/;
     const zipNumbers = /^\d{5}$/;
     if(!lettersAndSpace.test(formData.fullName)){
       newErrors.fullName = 'Name contains invalid characters.';

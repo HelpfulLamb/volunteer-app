@@ -258,6 +258,11 @@ export default function UserProfile() {
             <p><strong>Email:</strong> {profile.email}</p>
             <p><strong>Phone:</strong> {formatPhone(profile.phone)}</p>
             <p><strong>Address:</strong> {profile.address1}, {profile.city}, {profile.state} {profile.zipcode}</p>
+            {profile.address2 === '' ? (
+              <p></p>
+            ) : (
+              <p><strong>Address 2:</strong> {profile.address2}</p>
+            )}
           </div>
           {user?.role === 'volunteer' && (
               <div>

@@ -58,7 +58,7 @@ class NotificationService {
             }
 
             const title = 'Assignment Update';
-            const message = `You have been unassigned from "${event.event_name}" taking place one ${event.event_date} at ${event.event_location}`;
+            const message = `You have been unassigned from "${event.event_name}" taking place one ${new Date(event.event_date).toDateString()} at ${event.event_location}`;
             
             // Create notification record
             const notification = await notificationModel.createNotification({
