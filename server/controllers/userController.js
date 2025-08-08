@@ -3,8 +3,6 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config({path: '../.env'});
 const userModel = require('../models/userModel.js');
-const eventModel = require('../models/eventModel.js');
-const { getMatchingSuggestions } = require('../utils/matchLogic.js');
 const NotificationService = require('../services/notificationService.js');
 
 exports.getAllVolunteers = async (req, res) => {
@@ -237,30 +235,6 @@ exports.unassignVolunteer = async (req, res) => {
     res.status(200).json({message: 'Unassignment successfully executed'});
   } catch (error) {
     console.error('unassignVolunteer controller catch:', error.message);
-    res.status(500).json({message: 'Internal Server Error'});
-  }
-};
-
-exports.getSuggestedEvents = async (req, res) => {
-  const volunteerId = req.body.u_id;
-  try {
-    const volunteer = await userModel.findVolById(volunteerId);
-    console.log([volunteer]);
-    if(!volunteer){
-      return res.status(404).json({message: 'User not found'});
-    }
-    const events = await eventModel.getActiveEvents();
-    if(!events || events.length === 0){
-      return res.status(404).json({message: 'No active events found'});
-    }
-    const suggestions = await getMatchingSuggestions([volunteer], events);
-    if(!suggestions || suggestions.length === 0){
-      return res.status(404).json({message: 'No matching suggestions found'});
-    }
-    const topMatches = suggestions[0].matchedEvents.filter(e => !e.isOutsideRange).sort((a,b) => a.distanceInMeters - b.distanceInMeters).slice(0,5);
-    res.status(200).json(topMatches)
-  } catch (error) {
-    console.error('getSuggestedEvents controller catch:', error.message);
     res.status(500).json({message: 'Internal Server Error'});
   }
 };

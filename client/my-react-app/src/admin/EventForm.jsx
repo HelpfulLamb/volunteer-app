@@ -277,7 +277,7 @@ export default function EventManagementForm({  onSubmit, mode = 'create' }) {
         {message.success && <p className='text-green-600 font-medium'>{message.success}</p>}
         {message.error && <p className='text-red-600 font-medium'>{message.error}</p>}
         {mode === 'edit' && (
-          <button type='button' onClick={() => handleSubmit()} className='ml-auto bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700'>Cancel</button>
+          <button type='button' onClick={() => navigate('/events-list')} className='ml-auto bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700'>Cancel</button>
         )}
       </div>
     </form>

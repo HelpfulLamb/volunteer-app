@@ -80,12 +80,12 @@ clock_out_time time,
 hours_worked int,
 feedback text,
 rating int,
-createdAt datetime,
+createdAt datetime default CURRENT_TIMESTAMP(),
 completedAt datetime,
 foreign key (u_id) references USERPROFILE(u_id)
 on delete CASCADE,
 foreign key (e_id) references EVENTDETAILS(e_id)
-on delete SET NULL
+on delete CASCADE
 );
 
 create table HISTORY_SKILLS_USED (

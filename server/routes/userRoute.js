@@ -13,7 +13,6 @@ userRouter.get('/volunteers/assigned-events/:id', userController.getAssignments)
 userRouter.post('/login', userController.loginUser);
 userRouter.post('/register', userController.registerUser);
 userRouter.post('/assignment/:id', userController.assignVolunteer);
-userRouter.post('/volunteers/suggested-events', userController.getSuggestedEvents);
 userRouter.patch('/status-change/:id', userController.changeActiveStatus);
 userRouter.patch('/update-profile/:id', authenticate, userController.updateProfile);
 userRouter.delete('/delete-account/:id', userController.deleteUser);

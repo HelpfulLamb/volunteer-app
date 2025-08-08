@@ -84,7 +84,7 @@ exports.updateEvent = async (id, updatedEvent) => {
     const [result] = await connection.query(query, values);
     if(result.affectedRows === 0){
       await connection.rollback();
-      return result;
+      return null;
     }
     // updating skills
     if(updatedEvent.event_skills){
@@ -125,7 +125,7 @@ exports.changeStatus = async (id, status) => {
     const [result] = await db.query(`UPDATE EVENTDETAILS SET event_status = ? WHERE e_id = ?`,
       [status, id]
     );
-    return result;
+    return result.affectedRows > 0;
   } catch (error) {
     console.error('changeStatus model catch:', error.message);
     throw error;

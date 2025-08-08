@@ -2,7 +2,6 @@ const request = require('supertest');
 const app = require('../server.js');
 const moment = require('moment');
 const notiService = require('../services/notificationService.js');
-const userModel = require('../models/userModel.js');
 const eventModel = require('../models/eventModel.js');
 const notificationModel = require('../models/notificationModel.js');
 

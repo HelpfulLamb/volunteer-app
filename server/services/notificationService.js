@@ -25,7 +25,7 @@ class NotificationService {
             }
 
             const title = 'New Event Assignment';
-            const message = `You have been assigned to "${event.event_name}" event on ${event.event_date}. Location: ${event.event_location}`;
+            const message = `You have been assigned to "${event.event_name}" event on ${new Date(event.event_date).toDateString()}. Location: ${event.event_location}`;
             
             // Create notification record
             const notification = await notificationModel.createNotification({

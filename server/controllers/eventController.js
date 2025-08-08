@@ -106,13 +106,13 @@ exports.deleteEvent = async (req, res) => {
 
 exports.changeStatus = async (req, res) => {
   const id = parseInt(req.params.id);
-  console.log(id);
+  //console.log(id);
   const eventStatus = req.body.event_status;
-  console.log(eventStatus);
+  //console.log(eventStatus);
   try {
     const change = await eventModel.changeStatus(id, eventStatus);
     if(!change){
-      return res.status(404).json({message: 'Event not found.'});
+      return res.status(404).json({message: 'Event status failed to change.'});
     }
     console.log(change);
     const event = await eventModel.findEventById(id);

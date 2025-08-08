@@ -279,7 +279,12 @@ export default function UserProfile() {
                       ))}
                   </div>
                   <p className="mt-4"><strong>Preferences:</strong> {profile.preferences === '' ? 'None' : profile.preferences}</p>
-                  <p className='mt-4'><strong>Availability:</strong> {profile.availability}</p>
+                  <p className='mt-4'><strong>Availability:</strong> {
+                  Array.isArray(profile.availability) && profile.availability.length > 0 ? profile.availability.map(date => {
+                    const d = new Date(date.start || date);
+                    return `${d.getUTCMonth() + 1}/${d.getUTCDate()}/${d.getUTCFullYear()}`;
+                  }).join(', ') : 'None'
+                  }</p>
               </div>
           )}
         </div>

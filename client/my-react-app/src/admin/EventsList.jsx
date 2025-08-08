@@ -38,9 +38,7 @@ function EventTable({ eventInformation, onDelete, message }) {
               <td className="p-2">{event.event_name}</td>
               <td className="p-2">{formatDate(event.event_date)}</td>
               <td className="p-2">{event.event_location}</td>
-              <td className="p-2 space-x-2">
-                {event.event_status === 'Active' ? 'Active' : 'Cancelled'}
-              </td>
+              <td className="p-2 space-x-2">{event.event_status}</td>
               <td className="p-2 space-x-2">
                 <button className="text-blue-600 hover:underline" onClick={() => navigate(`/edit-event/${event.id}`, {state: event})}>Edit</button>
                 <button className="text-red-600 hover:underline" onClick={() => setModal({
