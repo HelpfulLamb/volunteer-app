@@ -33,7 +33,7 @@ exports.getAllEvents = async (req, res) => {
         const events = await eventModel.getAllEvents();
         res.status(200).json({ events });
     } catch (error) {
-      //console.error(error.message);
+      console.error(error.message);
       res.status(500).json({message: "Internal Server Error"});
     }
 };
@@ -43,7 +43,7 @@ exports.getActiveEvents = async (req, res) => {
         const events = await eventModel.getActiveEvents();
         res.status(200).json({ events });
     } catch (error) {
-      //console.error(error.message);
+      console.error(error.message);
       res.status(500).json({message: "Internal Server Error"});
     }
 };
@@ -99,7 +99,7 @@ exports.deleteEvent = async (req, res) => {
     }
     res.status(200).json({message: "Event deleted successfully."});
   } catch (error) {
-    //console.error('deleteEvent controller catch:', error.message);
+    console.error('deleteEvent controller catch:', error.message);
     res.status(500).json({message: "Internal Server Error"});
   }
 };

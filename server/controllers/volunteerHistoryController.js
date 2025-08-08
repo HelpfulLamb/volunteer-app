@@ -18,7 +18,7 @@ const getVolunteerHistory = async (req, res) => {
             data: history
         });
     } catch (error) {
-        //console.error('Error getting volunteer history:', error);
+        console.error('Error getting volunteer history:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get volunteer history',
@@ -45,7 +45,7 @@ const getHistoryEntryById = async (req, res) => {
             data: entry
         });
     } catch (error) {
-        //console.error('Error getting history entry:', error);
+        console.error('Error getting history entry:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get history entry',
@@ -111,7 +111,7 @@ const updateHistoryEntry = async (req, res) => {
             message: 'History entry updated successfully'
         });
     } catch (error) {
-        //console.error('Error updating history entry:', error);
+        console.error('Error updating history entry:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to update history entry',
@@ -153,7 +153,7 @@ const completeEvent = async (req, res) => {
             message: 'Event completed successfully'
         });
     } catch (error) {
-        //console.error('Error completing event:', error);
+        console.error('Error completing event:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to complete event',
@@ -188,7 +188,7 @@ const getVolunteerStats = async (req, res) => {
             }
         });
     } catch (error) {
-        //console.error('Error getting volunteer stats:', error);
+        console.error('Error getting volunteer stats:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get volunteer stats',
@@ -218,7 +218,7 @@ const getTopVolunteers = async (req, res) => {
             data: enrichedTopVolunteers
         });
     } catch (error) {
-        //console.error('Error getting top volunteers:', error);
+        console.error('Error getting top volunteers:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get top volunteers',
@@ -252,7 +252,7 @@ const getEventHistory = async (req, res) => {
             data: enrichedEventHistory
         });
     } catch (error) {
-        //console.error('Error getting event history:', error);
+        console.error('Error getting event history:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get event history',
@@ -279,7 +279,7 @@ const deleteHistoryEntry = async (req, res) => {
             message: 'History entry deleted successfully'
         });
     } catch (error) {
-        //console.error('Error deleting history entry:', error);
+        console.error('Error deleting history entry:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to delete history entry',
@@ -298,7 +298,7 @@ const getAllHistory = async (req, res) => {
             data: allHistory
         });
     } catch (error) {
-        //console.error('Error getting all history:', error);
+        console.error('Error getting all history:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to get all history',

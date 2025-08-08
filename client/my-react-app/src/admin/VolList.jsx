@@ -4,6 +4,12 @@ function VolunteerTable({ volInformation }) {
   if(!volInformation || !Array.isArray(volInformation)) {
     return <div>No Volunteer data is available!</div>
   }
+
+  const formatAddress = (address1, city, state, zipcode) => {
+    const parts = [address1, city, state, zipcode].filter(part => part && part.trim() !== '');
+    return parts.length > 0 ? parts.join(', ') : 'N/A';
+  };
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h1 className="text-2xl font-bold mb-4">Volunteer List</h1>
@@ -22,7 +28,7 @@ function VolunteerTable({ volInformation }) {
             <tr key={vol.id}>
               <td className="p-2">{vol.fullName}</td>
               <td className="p-2">{vol.skills}</td>
-              <td className="p-2">{`${vol.address1}, ${vol.city}, ${vol.state} ${vol.zipcode}`}</td>
+              <td className="p-2">{formatAddress(vol.address1, vol.city, vol.state, vol.zipcode)}</td>
               <td className="p-2 space-x-2">
                 {vol.status === 'Active' ? 'Active' : 'Inactive'}
               </td>
