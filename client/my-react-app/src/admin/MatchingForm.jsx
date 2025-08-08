@@ -132,6 +132,11 @@ const VolunteerMatchingPage = () => {
     return date.toLocaleDateString();
   };
 
+  const formatAddress = (address1, city, state, zipcode) => {
+    const parts = [address1, city, state, zipcode].filter(part => part && part.trim() !== '');
+    return parts.length > 0 ? parts.join(', ') : 'N/A';
+  };
+
   if(loading) return <p className='text-xl text-indigo-500 text-center mt-4 animate-pulse'>Loading...</p>
   if(error) return <p>Error: {error}</p>;
 
@@ -171,7 +176,7 @@ const VolunteerMatchingPage = () => {
                 </div>
                 <div className="mt-2">
                   <div className="flex items-center text-gray-600 text-sm mb-1">
-                    <FiMapPin className="mr-2" /> {`${volunteer.address1}, ${volunteer.city}, ${volunteer.state} ${volunteer.zipcode}`}
+                    <FiMapPin className="mr-2" /> {formatAddress(volunteer.address1, volunteer.city, volunteer.state, volunteer.zipcode)}
                   </div>
                   <div className="flex items-center text-gray-600 text-sm mb-2">
                     <FiClock className="mr-2" /> {Array.isArray(volunteer.availability) && volunteer.availability.length > 0 ? volunteer.availability.map(d => formatDate(d)).join(', ') : volunteer.preferences?.trim() ? volunteer.preferences : 'N/A'}

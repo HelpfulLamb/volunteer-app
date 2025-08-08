@@ -14,7 +14,21 @@
   },
   "jest": {
     "collectCoverage": true,
-    "coverageReporters": ["html"]
+    "coverageReporters": ["html", "text", "json"],
+    "collectCoverageFrom": [
+      "controllers/**/*.js",
+      "models/notificationModel.js",
+      "models/itemModel.js",
+      "routes/**/*.js",
+      "utils/**/*.js",
+      "services/**/*.js",
+      "!controllers/volunteerHistoryController.js"
+    ],
+    "coverageDirectory": "coverage",
+    "testTimeout": 10000,
+    "forceExit": true,
+    "detectOpenHandles": true,
+    "testEnvironment": "node"
   },
   "dependencies": {
     "@swc/helpers": "^0.5.17",

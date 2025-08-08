@@ -3,8 +3,8 @@ const db = require('../db.js');
 exports.findVolById = async (id) => {
     const sql = `
         SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.status,
-               (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
-               (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
+               IFNULL((SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id), JSON_ARRAY()) as skills,
+               IFNULL((SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id), JSON_ARRAY()) as availability
         FROM USERPROFILE u
         JOIN USERCREDENTIALS c ON u.u_id = c.u_id
         WHERE u.u_id = ? AND u.role = 'volunteer'
@@ -25,7 +25,7 @@ exports.getAssignedVol = async (e_id) => {
 
 exports.getAssignments = async (u_id) => {
   const [assigned] = await db.query(`
-    SELECT e.*, CAST(CONCAT(e.event_date, ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(e.event_date, ' ', e.event_end) AS DATETIME) as endTime
+    SELECT e.*, CAST(CONCAT(DATE(e.event_date), ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(DATE(e.event_date), ' ', e.event_end) AS DATETIME) as endTime
     FROM ASSIGNMENT a
     JOIN EVENTDETAILS e ON e.e_id = a.e_id
     WHERE a.u_id = ?
@@ -78,8 +78,8 @@ exports.createUser = async (userData) => {
 exports.getAllVolunteers = async () => {
     const sql = `
         SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.status,
-               (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
-               (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
+               IFNULL((SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id), JSON_ARRAY()) as skills,
+               IFNULL((SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id), JSON_ARRAY()) as availability
         FROM USERPROFILE u
         JOIN USERCREDENTIALS c ON u.u_id = c.u_id
         WHERE u.role = 'volunteer'
@@ -91,8 +91,8 @@ exports.getAllVolunteers = async () => {
 exports.getActiveVol = async () => {
   const [volunteers] = await db.query(`
     SELECT u.u_id as id, CONCAT(u.fname, ' ', u.lname) as fullName, c.email, u.role, u.phone, u.preferences, u.address1, u.address2, u.city, u.state, u.zipcode, u.status,
-    (SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id) as skills,
-    (SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id) as availability
+    IFNULL((SELECT JSON_ARRAYAGG(s.skill) FROM VOLUNTEER_SKILLS vs JOIN SKILLS s ON vs.s_id = s.s_id WHERE vs.u_id = u.u_id), JSON_ARRAY()) as skills,
+    IFNULL((SELECT JSON_ARRAYAGG(a.available_date) FROM AVAILABILITY a WHERE a.u_id = u.u_id), JSON_ARRAY()) as availability
     FROM USERPROFILE u
     JOIN USERCREDENTIALS c ON u.u_id = c.u_id
     WHERE u.role = 'volunteer' AND u.status = 'Active';
