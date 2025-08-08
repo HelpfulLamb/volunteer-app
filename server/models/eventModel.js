@@ -32,7 +32,7 @@ exports.createEvent = async (eventData) => {
 
 exports.getAllEvents = async () => {
   const [events] = await db.query(`
-    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, CAST(CONCAT(e.event_date, ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(e.event_date, ' ', e.event_end) AS DATETIME) as endTime,
+    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, CAST(CONCAT(DATE(e.event_date), ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(DATE(e.event_date), ' ', e.event_end) AS DATETIME) as endTime,
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
     FROM EVENTDETAILS e
     ORDER BY e.event_date DESC
@@ -43,7 +43,7 @@ exports.getAllEvents = async () => {
 
 exports.getActiveEvents = async () => {
   const [events] = await db.query(`
-    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, e.event_start AS startTime, e.event_end AS endTime,
+    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, CAST(CONCAT(DATE(e.event_date), ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(DATE(e.event_date), ' ', e.event_end) AS DATETIME) as endTime,
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
     FROM EVENTDETAILS e
     WHERE e.event_status = 'Active'
@@ -54,7 +54,7 @@ exports.getActiveEvents = async () => {
 
 exports.findEventById = async (id) => {
   const [event] = await db.query(`
-    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status,
+    SELECT e.e_id as id, e.event_name, e.event_description, e.event_location, e.event_urgency, e.event_date, e.event_status, CAST(CONCAT(DATE(e.event_date), ' ', e.event_start) AS DATETIME) as startTime, CAST(CONCAT(DATE(e.event_date), ' ', e.event_end) AS DATETIME) as endTime,
     (SELECT JSON_ARRAYAGG(s.skill) FROM EVENT_SKILLS es JOIN SKILLS s ON es.s_id = s.s_id WHERE es.e_id = e.e_id) as event_skills
     FROM EVENTDETAILS e
     WHERE e.e_id = ?

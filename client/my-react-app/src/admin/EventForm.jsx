@@ -48,8 +48,14 @@ export default function EventManagementForm({  onSubmit, mode = 'create' }) {
         const match = skills.find(s => s.skill === skillName);
         return match ? { s_id: match.s_id } : null;
       }).filter(id => id !== null);
-      const formatTime = (dateString) => {
-        const date = new Date(dateString);
+      const formatTime = (dateTimeString) => {
+        if (!dateTimeString) return '';
+        // If it's already in HH:MM format, return as is
+        if (dateTimeString.includes(':') && !dateTimeString.includes('T') && !dateTimeString.includes('-')) {
+          return dateTimeString.slice(0, 5); // Return HH:MM part only
+        }
+        // If it's a datetime string, extract time
+        const date = new Date(dateTimeString);
         const hours = String(date.getHours()).padStart(2,'0');
         const minutes = String(date.getMinutes()).padStart(2,'0');
         return `${hours}:${minutes}`;

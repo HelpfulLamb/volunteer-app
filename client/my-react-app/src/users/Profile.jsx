@@ -88,21 +88,23 @@ export default function UserProfile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
+        console.log('Fetching profile for user:', user);
         const response = await fetch(user.role === 'admin' ? `/api/users/admins/${user.id}/find` : `/api/users/volunteers/${user.id}/find`);
         if(!response.ok) {
           throw new Error(`HTTP Error! Status: ${response.status}. Failed to retrieve user data.`);
         }
         const data = await response.json();
-        //console.log('Profile.jsx:', data);
+        console.log('Profile.jsx received data:', data);
         setProfile(data);
       } catch (error) {
+        console.error('Profile fetch error:', error);
         setError(error.message);
       } finally {
         setLoading(false);
       }
     };
     fetchProfile();
-  }, []);
+  }, [user.id, user.role]);
 
   useEffect(() => {
     const fetchUpcomingAssignments = async () => {
@@ -119,7 +121,7 @@ export default function UserProfile() {
       }
     };
     fetchUpcomingAssignments();
-  }, []);
+  }, [user.id]);
 
   const fetchHistory = async () => {
     if(user?.role === 'volunteer'){
@@ -207,15 +209,22 @@ export default function UserProfile() {
   };
   
   const formatPhone = (phone) => {
+    if (!phone) return null;
     const digits = phone.replace(/\D/g, '');
     if(digits.length > 6){
       return `(${digits.slice(0,3)}) ${digits.slice(3,6)} - ${digits.slice(6,10)}`;
     }
   };
 
+  const formatAddress = (address1, city, state, zipcode) => {
+    const parts = [address1, city, state, zipcode].filter(part => part && part.trim() !== '');
+    return parts.length > 0 ? parts.join(', ') : '';
+  };
+
   if(loading) return <p className='text-xl text-indigo-500 text-center mt-4 animate-pulse'>Loading...</p>
   if(error) return <p>Error: {error}</p>;
   if(!profile) return <p>No Profile Data Found.</p>
+  console.log('Profile component rendering with:', { profile, user, loading, error });
   //console.log(profile.status)
 
   return (
@@ -256,8 +265,8 @@ export default function UserProfile() {
           <div>
             <h2 className="text-lg font-semibold mb-2">Contact Information</h2>
             <p><strong>Email:</strong> {profile.email}</p>
-            <p><strong>Phone:</strong> {formatPhone(profile.phone)}</p>
-            <p><strong>Address:</strong> {profile.address1}, {profile.city}, {profile.state} {profile.zipcode}</p>
+            <p><strong>Phone:</strong> {formatPhone(profile.phone) || ''}</p>
+            <p><strong>Address:</strong> {formatAddress(profile.address1, profile.city, profile.state, profile.zipcode)}</p>
             {profile.address2 === '' ? (
               <p></p>
             ) : (
